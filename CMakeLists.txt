@@ -1,0 +1,45 @@
+PROJECT(packimages)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+INCLUDE(FindPkgConfig)
+
+SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# additional compiler flags
+ADD_DEFINITIONS(-Wall -O2)
+SET( CMAKE_CXX_FLAGS "-std=c++14" )
+
+FIND_PACKAGE(PNG)
+# FIND_PACKAGE(JPEG)
+
+INCLUDE_DIRECTORIES(
+    ${PNG_INCLUDE_DIR}
+    # ${JPEG_INCLUDE_DIR}
+    )
+
+LINK_DIRECTORIES(
+    ${PNG_LIBRARY_DIRS}
+    # ${JPEG_LIBRARY_DIRS}
+    )
+
+SET( SOURCES
+    src/file.cpp
+    src/image.cpp
+    src/imagesaver.cpp
+    src/main.cpp
+    src/packer.cpp
+    src/rect.cpp
+    src/trim.cpp
+    )
+
+LINK_LIBRARIES (
+    ${PNG_LIBRARY}
+    # ${JPEG_LIBRARY}
+    )
+
+ADD_EXECUTABLE( packimages
+    WIN32 # Only if you don't want the DOS prompt to appear in the background in Windows
+    # MACOSX_BUNDLE
+    ${SOURCES}
+    )
+

@@ -1,0 +1,8 @@
+.DS_Store
+tags
+img/
+tmp/
+project.xcworkspace/
+xcuserdata/
+.build/
+packimages
