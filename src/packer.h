@@ -11,6 +11,7 @@
 #include "bitmap.h"
 #include "rect.h"
 
+#include <cstddef>
 #include <vector>
 
 class cImage;
