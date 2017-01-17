@@ -1,8 +1,10 @@
 .DS_Store
-tags
-img/
-tmp/
-project.xcworkspace/
-xcuserdata/
 .build/
+.ycm_extra_conf.py*
+img/
 packimages
+project.xcworkspace/
+tags
+test/
+tmp/
+xcuserdata/
