@@ -60,12 +60,12 @@ bool cPacker::add(const cImage* image)
 
     sRect img_rc;
 
-    for (unsigned y = 0, rows = m_atlas.height - height; y < rows; )
+    for (unsigned y = 0, rows = m_atlas.height - height; y < rows;)
     {
         img_rc.top = y;
         img_rc.bottom = y + height;
 
-        for (unsigned x = 0, cols = m_atlas.width - width; x < cols; )
+        for (unsigned x = 0, cols = m_atlas.width - width; x < cols;)
         {
             img_rc.left = x;
             img_rc.right = x + width;
@@ -102,15 +102,15 @@ const sRect* cPacker::checkRegion(const sRect& region) const
     return nullptr;
 }
 
-void cPacker::fillTexture()
+void cPacker::fillTexture(bool overlay)
 {
     for (const auto& img : m_images)
     {
-        copyBitmap(img.rc, img.image);
+        copyBitmap(img.rc, img.image, overlay);
     }
 }
 
-void cPacker::copyBitmap(const sRect& rc, const cImage* image)
+void cPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
 {
     auto& bmp = image->getBitmap();
     auto src = bmp.data.data();
@@ -125,6 +125,40 @@ void cPacker::copyBitmap(const sRect& rc, const cImage* image)
         for (unsigned x = 0, width = bmp.width; x < width; x++)
         {
             *dst++ = *src++;
+        }
+    }
+
+    if (overlay)
+    {
+        const float sR = 0.0f;
+        const float sG = 0.0f;
+        const float sB = 1.0f;
+        const float sA = 0.6f;
+        const float inv = 1.0f / 255.0f;
+
+        for (unsigned y = 0, height = bmp.height; y < height; y++)
+        {
+            auto dst = m_atlas.data.data() + (y + offy) * pitch + offx;
+            for (unsigned x = 0, width = bmp.width; x < width; x++)
+            {
+                const float dR = dst->r * inv;
+                const float dG = dst->g * inv;
+                const float dB = dst->b * inv;
+                const float dA = dst->a * inv;
+
+                const float r = sA * (sR - dR) + dR;
+                const float g = sA * (sG - dG) + dG;
+                const float b = sA * (sB - dB) + dB;
+                const float a = dA * (1.0f - sA) + sA;
+
+                *dst++ =
+                {
+                    static_cast<unsigned char>(r * 255.0f),
+                    static_cast<unsigned char>(g * 255.0f),
+                    static_cast<unsigned char>(b * 255.0f),
+                    static_cast<unsigned char>(a * 255.0f)
+                };
+            }
         }
     }
 }

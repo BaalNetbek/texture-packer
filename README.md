@@ -15,10 +15,11 @@ $ packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
   INPUT_IMAGE        input image name or directory separated by space
   -o ATLAS           output atlas name (default PNG)
   -res DESC_TEXTURE  output atlas description as XML
-  -pot               make power of two texture
-  -trim              trim input images
-  -b size            add border around image (default 1 px)
-  -max size          max texture size
+  -pot               make power of two atlas
+  -trim              trim sprites
+  -overlay           draw overlay over sprite
+  -b size            add border around sprite
+  -max size          max atlas size
 ```
 
 ##Download and build##
@@ -26,7 +27,7 @@ $ packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
 You can browse the source code repository on GitHub or get a copy using git with the following command:
 ```
 $ git clone https://bitbucket.org/andreyu/texture-packer.git
-$ make
+$ make release
 ```
 
 ##Dependencies##

@@ -24,7 +24,7 @@ public:
 
     void setSize(unsigned width, unsigned height);
     bool add(const cImage* image);
-    void fillTexture();
+    void fillTexture(bool overlay);
     bool generateResFile(const char* name, const char* atlasName);
 
     const Bitmap& getBitmap() const
@@ -35,7 +35,7 @@ public:
 private:
     void clear();
     const sRect* checkRegion(const sRect& region) const;
-    void copyBitmap(const sRect& test, const cImage* image);
+    void copyBitmap(const sRect& test, const cImage* image, bool overlay);
 
 private:
     unsigned m_border;

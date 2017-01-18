@@ -22,7 +22,17 @@
 #include <dirent.h>
 #include <sys/time.h>
 
-void showHelp(const char* name);
+struct sConfig
+{
+    unsigned maxTextureSize = 2048;
+    unsigned border = 1;
+    bool pot = false;
+    bool trim = false;
+    bool overlay = false;
+};
+
+void showHelp(const char* name, const sConfig& config);
+const char* isEnabled(bool enabled);
 unsigned nextPot(unsigned i);
 uint64_t getCurrentTime();
 
@@ -31,11 +41,13 @@ void addPath(const std::string& path, FilesList& filesList);
 
 int main(int argc, char* argv[])
 {
-    printf("Texture Packer v1.0.2.\n");
+    sConfig config;
+
+    printf("Texture Packer v1.0.3.\n");
     printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
-        showHelp(argv[0]);
+        showHelp(argv[0], config);
         return -1;
     }
 
@@ -43,52 +55,53 @@ int main(int argc, char* argv[])
     const char* outputResName = nullptr;
     FilesList filesList;
 
-    unsigned maxTextureSize = 4096;
-    unsigned border = 1;
-    bool pot = false;
-    bool trimInput = false;
-
     for (int i = 1; i < argc; i++)
     {
-        if (strncmp(argv[i], "-o", 2) == 0)
+        const char* arg = argv[i];
+
+        if (strcmp(arg, "-o") == 0)
         {
             if (i + 1 < argc)
             {
                 outputAtlasName = argv[++i];
             }
         }
-        else if (strncmp(argv[i], "-res", 4) == 0)
+        else if (strcmp(arg, "-res") == 0)
         {
             if (i + 1 < argc)
             {
                 outputResName = argv[++i];
             }
         }
-        else if (strncmp(argv[i], "-b", 2) == 0)
+        else if (strcmp(arg, "-b") == 0)
         {
             if (i + 1 < argc)
             {
-                border = static_cast<unsigned>(atoi(argv[++i]));
+                config.border = static_cast<unsigned>(atoi(argv[++i]));
             }
         }
-        else if (strncmp(argv[i], "-max", 4) == 0)
+        else if (strcmp(arg, "-max") == 0)
         {
             if (i + 1 < argc)
             {
-                maxTextureSize = static_cast<unsigned>(atoi(argv[++i]));
+                config.maxTextureSize = static_cast<unsigned>(atoi(argv[++i]));
             }
         }
-        else if (strncmp(argv[i], "-pot", 4) == 0)
+        else if (strcmp(arg, "-pot") == 0)
         {
-            pot = true;
+            config.pot = true;
         }
-        else if (strncmp(argv[i], "-trim", 5) == 0)
+        else if (strcmp(arg, "-trim") == 0)
         {
-            trimInput = true;
+            config.trim = true;
+        }
+        else if (strcmp(arg, "-overlay") == 0)
+        {
+            config.overlay = true;
         }
         else
         {
-            std::string path = argv[i];
+            std::string path = arg;
             if (path[path.length() - 1] == '/')
             {
                 path = path.substr(0, path.length() - 1);
@@ -103,13 +116,14 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    printf("Border %u px.\n", border);
-    printf("Trim images: %s.\n", trimInput ? "true" : "false");
-    printf("Power of Two: %s.\n", pot ? "true" : "false");
-    printf("Max texture size %u px.\n", maxTextureSize);
+    printf("Border %u px.\n", config.border);
+    printf("Overlay: %s.\n", isEnabled(config.overlay));
+    printf("Trim sprites: %s.\n", isEnabled(config.trim));
+    printf("Power of Two: %s.\n", isEnabled(config.pot));
+    printf("Max atlas size %u px.\n", config.maxTextureSize);
 
     auto startTime = getCurrentTime();
-    std::unique_ptr<cTrim> trim(trimInput ? new cTrim() : nullptr);
+    std::unique_ptr<cTrim> trim(config.trim ? new cTrim() : nullptr);
     std::vector<cImage*> imagesList;
     for (const auto& path : filesList)
     {
@@ -128,22 +142,28 @@ int main(int argc, char* argv[])
         {
             auto& bmpa = a->getBitmap();
             auto& bmpb = b->getBitmap();
-            return bmpa.width * bmpa.height > bmpb.width * bmpb.height;
+            return (bmpa.width * bmpa.height > bmpb.width * bmpb.height)
+                && (bmpa.width + bmpa.height > bmpb.width + bmpb.height);
         });
 
         printf("Packing");
-        cPacker packer(imagesList.size(), border);
+        cPacker packer(imagesList.size(), config.border);
 
         unsigned area = 0;
+        unsigned maxWidth = 0;
+        unsigned maxHeight = 0;
         for (auto img : imagesList)
         {
             auto& bmp = img->getBitmap();
-            area += (bmp.width + border * 2) * (bmp.height + border * 2);
+            maxWidth = std::max<unsigned>(maxWidth, bmp.width);
+            maxHeight = std::max<unsigned>(maxHeight, bmp.height);
+            area += (bmp.width + config.border * 2) * (bmp.height + config.border * 2);
         }
 
-        auto width = static_cast<unsigned>(sqrt(area));
-        auto height = static_cast<unsigned>(sqrt(area));
-        if (pot)
+        auto sq = static_cast<unsigned>(sqrt(area));
+        auto width = std::max<unsigned>(sq, maxWidth);
+        auto height = std::max<unsigned>(sq, maxHeight);
+        if (config.pot)
         {
             width = nextPot(width);
             height = nextPot(area / width);
@@ -164,7 +184,7 @@ int main(int argc, char* argv[])
                     printf(".");
                     fflush(nullptr);
 
-                    if (pot)
+                    if (config.pot)
                     {
                         if (width > height)
                         {
@@ -196,17 +216,17 @@ int main(int argc, char* argv[])
                 }
             }
         }
-        while (done == false && width <= maxTextureSize && height <= maxTextureSize);
+        while (done == false && width <= config.maxTextureSize && height <= config.maxTextureSize);
 
         auto sec = (getCurrentTime() - startTime) * 0.000001f;
         printf(" in %g sec.\n", sec);
 
-        if (width > maxTextureSize || height > maxTextureSize)
+        if (width > config.maxTextureSize || height > config.maxTextureSize)
         {
             printf("Resulting texture too big.\n");
         }
 
-        packer.fillTexture();
+        packer.fillTexture(config.overlay);
 
         // write texture
         cImageSaver saver(packer.getBitmap());
@@ -230,7 +250,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void showHelp(const char* name)
+void showHelp(const char* name, const sConfig& config)
 {
     printf("Usage:\n");
     const char* p = strrchr(name, '/');
@@ -238,10 +258,16 @@ void showHelp(const char* name)
     printf("  INPUT_IMAGE        input image name or directory separated by space\n");
     printf("  -o ATLAS           output atlas name (default PNG)\n");
     printf("  -res DESC_TEXTURE  output atlas description as XML\n");
-    printf("  -pot               make power of two texture\n");
-    printf("  -trim              trim input images\n");
-    printf("  -b size            add border around image (default 1 px)\n");
-    printf("  -max size          max texture size\n");
+    printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
+    printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
+    printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));
+    printf("  -b size            add border around sprite (default %u px)\n", config.border);
+    printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
+}
+
+const char* isEnabled(bool enabled)
+{
+    return enabled ? "enabled" : "disabled";
 }
 
 unsigned nextPot(unsigned i)
