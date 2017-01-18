@@ -26,20 +26,20 @@ namespace
             }
         }
 
-        return 0;
+        return bitmap.width;
     }
 
     unsigned findRigth(const Bitmap& bitmap)
     {
         for (unsigned x = 0; x < bitmap.width; x++)
         {
-            unsigned b = bitmap.width - x - 1;
-            auto src = bitmap.data.data() + b;
+            unsigned offset = bitmap.width - x - 1;
+            auto src = bitmap.data.data() + offset;
             for (unsigned y = 0; y < bitmap.height; y++)
             {
                 if (src->a != 0)
                 {
-                    return x;
+                    return offset;
                 }
                 src += bitmap.width;
             }
@@ -63,20 +63,20 @@ namespace
             }
         }
 
-        return 0;
+        return bitmap.height;
     }
 
     unsigned findBottom(const Bitmap& bitmap)
     {
         for (unsigned y = 0; y < bitmap.height; y++)
         {
-            unsigned b = bitmap.height - y - 1;
-            auto src = bitmap.data.data() + b * bitmap.width;
+            unsigned offset = bitmap.height - y - 1;
+            auto src = bitmap.data.data() + offset * bitmap.width;
             for (unsigned x = 0; x < bitmap.width; x++)
             {
                 if (src->a != 0)
                 {
-                    return y;
+                    return offset;
                 }
                 src++;
             }
@@ -85,11 +85,6 @@ namespace
         return 0;
     }
 
-}
-
-cTrim::cTrim(unsigned border)
-    : m_border(border)
-{
 }
 
 bool cTrim::trim(const char* name, const Bitmap& bitmap)
@@ -101,31 +96,32 @@ bool cTrim::trim(const char* name, const Bitmap& bitmap)
     auto top = findTop(bitmap);
     auto bottom = findBottom(bitmap);
 
-    unsigned border = m_border;
-    if (left == border && right == border && top == border && bottom == border)
+    if (left == 0 && right == bitmap.width && top == 0 && bottom == bitmap.height)
     {
         return false;
     }
 
-    // printf("Trim %s : %u , %u , %u , %u\n", name, left, right, top, bottom);
-
-    auto srcWidth = bitmap.width - left - right;
-    auto srcHeight = bitmap.height - top - bottom;
-    auto src = bitmap.data.data() + top * bitmap.width + left;
-
-    m_bitmap.width = srcWidth + border * 2;
-    m_bitmap.height = srcHeight + border * 2;
-    m_bitmap.data.resize(m_bitmap.width * m_bitmap.height);
-    auto dst = m_bitmap.data.data() + border * m_bitmap.width + border;
-
-    for (unsigned y = top; y < srcHeight; y++)
+    if (left > right || top > bottom)
     {
-        for (unsigned x = 0; x < srcWidth; x++)
+        printf("(WW) Empty sprite: %s\n", name);
+    }
+    else
+    {
+        // printf("Trim %s (%u x %u): %u <-> %u , %u <-> %u\n", name, bitmap.width, bitmap.height, left, right, top, bottom);
+
+        auto src = bitmap.data.data() + top * bitmap.width;
+
+        m_bitmap.setSize(right - left + 1, bottom - top + 1);
+        auto dst = m_bitmap.data.data();
+
+        for (unsigned y = top; y <= bottom; y++)
         {
-            dst[x] = src[x];
+            for (unsigned x = left; x <= right; x++)
+            {
+                *dst++ = src[x];
+            }
+            src += bitmap.width;
         }
-        dst += m_bitmap.width;
-        src += bitmap.width;
     }
 
     return true;

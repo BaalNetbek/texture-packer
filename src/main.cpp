@@ -27,7 +27,7 @@ unsigned nextPot(unsigned i);
 uint64_t getCurrentTime();
 
 typedef std::vector<std::string> FilesList;
-void addPath(const char* path, FilesList& filesList);
+void addPath(const std::string& path, FilesList& filesList);
 
 int main(int argc, char* argv[])
 {
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
     printf("Max texture size %u px.\n", maxTextureSize);
 
     auto startTime = getCurrentTime();
-    std::unique_ptr<cTrim> trim(trimInput ? new cTrim(0) : nullptr);
+    std::unique_ptr<cTrim> trim(trimInput ? new cTrim() : nullptr);
     std::vector<cImage*> imagesList;
     for (const auto& path : filesList)
     {
@@ -259,37 +259,41 @@ uint64_t getCurrentTime()
     return (uint64_t)(t.tv_sec * 1000000 + t.tv_usec);
 }
 
-#define DOT_OR_DOTDOT(base) (base[0] == '.' && (base[1] == '\0' || (base[1] == '.' && base[2] == '\0')))
-
-void addPath(const char* path, FilesList& filesList)
+int DirectoryFilter(const dirent* p)
 {
-    auto dfd = opendir(path);
-    if (dfd != nullptr)
+    // skip . and ..
+#define DOT_OR_DOTDOT(base) (base[0] == '.' && (base[1] == '\0' || (base[1] == '.' && base[2] == '\0')))
+    return DOT_OR_DOTDOT(p->d_name) ? 0 : 1;
+}
+
+void addPath(const std::string& root, FilesList& filesList)
+{
+    dirent** namelist;
+    int n = scandir(root.c_str(), &namelist, DirectoryFilter, alphasort);
+    if (n >= 0)
     {
-        dirent* dp;
-        while ((dp = readdir(dfd)) != nullptr)
+        while (n--)
         {
-            if (DOT_OR_DOTDOT(dp->d_name))
-            {
-                continue;
-            }
+            std::string path(root);
+            path += "/";
+            path += namelist[n]->d_name;
 
-            std::string name = path;
-            if (name[name.length() - 1] != '/')
+            // skip non non readable files/dirs
+            auto dir = opendir(path.c_str());
+            if (dir != nullptr)
             {
-                name += '/';
+                closedir(dir);
+                // if (m_recursive == true)
+                {
+                    addPath(path, filesList);
+                }
             }
-            name += dp->d_name;
-
-            if (cImage::IsImage(name.c_str()))
+            else if (cImage::IsImage(path.c_str()))
             {
-                filesList.push_back(name);
+                filesList.push_back(path);
             }
+            free(namelist[n]);
         }
-        closedir(dfd);
-    }
-    else if (cImage::IsImage(path))
-    {
-        filesList.push_back(path);
+        free(namelist);
     }
 }

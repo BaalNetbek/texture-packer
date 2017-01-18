@@ -13,8 +13,6 @@
 class cTrim final
 {
 public:
-    cTrim(unsigned border);
-
     bool trim(const char* name, const Bitmap& input);
 
     const Bitmap& getBitmap() const
@@ -23,6 +21,5 @@ public:
     }
 
 private:
-    unsigned m_border;
     Bitmap m_bitmap;
 };
