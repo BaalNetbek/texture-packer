@@ -129,24 +129,11 @@ void cPacker::copyBitmap(const sRect& rc, const cImage* image)
     }
 }
 
-const char* getName(const char* path)
-{
-    const char* p = strrchr(path, '/');
-    if (p != nullptr)
-    {
-        return p + 1;
-    }
-
-    return path;
-}
-
-bool cPacker::generateResFile(const char* name)
+bool cPacker::generateResFile(const char* name, const char* atlasName)
 {
     cFile file;
     if (file.open(name, "w"))
     {
-        const char* texture_name = "texture.png";
-
         std::stringstream out;
         out << "<objects>\n";
         for (const auto& img : m_images)
@@ -155,9 +142,8 @@ bool cPacker::generateResFile(const char* name)
             auto ty = img.rc.top;
             auto tw = img.rc.width();
             auto th = img.rc.height();
-            auto name = getName(img.image->getName());
             out << "    ";
-            out << "<" << name << " texture=\"" << texture_name << "\" ";
+            out << "<sprite id=\"" << img.image->getName() << "\" texture=\"" << atlasName << "\" ";
             out << "rect=\"" << tx << " " << ty << " " << tw << " " << th << "\" ";
             out << "hotspot=\"" << (tw >> 1) << " " << (th >> 1) << "\" />\n";
         }

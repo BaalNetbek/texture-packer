@@ -31,7 +31,7 @@ void addPath(const std::string& path, FilesList& filesList);
 
 int main(int argc, char* argv[])
 {
-    printf("Texture Packer v1.0.0.\n");
+    printf("Texture Packer v1.0.2.\n");
     printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    const char* outputName = nullptr;
+    const char* outputAtlasName = nullptr;
     const char* outputResName = nullptr;
     FilesList filesList;
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
         {
             if (i + 1 < argc)
             {
-                outputName = argv[++i];
+                outputAtlasName = argv[++i];
             }
         }
         else if (strncmp(argv[i], "-res", 4) == 0)
@@ -88,11 +88,16 @@ int main(int argc, char* argv[])
         }
         else
         {
-            addPath(argv[i], filesList);
+            std::string path = argv[i];
+            if (path[path.length() - 1] == '/')
+            {
+                path = path.substr(0, path.length() - 1);
+            }
+            addPath(path, filesList);
         }
     }
 
-    if (outputName == nullptr)
+    if (outputAtlasName == nullptr)
     {
         printf("No output name defined.\n");
         return -1;
@@ -205,15 +210,15 @@ int main(int argc, char* argv[])
 
         // write texture
         cImageSaver saver(packer.getBitmap());
-        if (saver.save(outputName) == true)
+        if (saver.save(outputAtlasName) == true)
         {
             // write resource file
             if (outputResName != nullptr)
             {
-                packer.generateResFile(outputResName);
+                packer.generateResFile(outputResName, outputAtlasName);
             }
 
-            printf("Texture '%s' %u x %u has been created.\n", outputName, width, height);
+            printf("Atlas '%s' %u x %u has been created.\n", outputAtlasName, width, height);
         }
 
         for (auto img : imagesList)

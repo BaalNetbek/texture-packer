@@ -26,9 +26,9 @@ public:
         return m_bitmap;
     }
 
-    const char* getName() const
+    const std::string& getName() const
     {
-        return m_name.c_str();
+        return m_name;
     }
 
 protected:

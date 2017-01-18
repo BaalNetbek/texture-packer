@@ -25,7 +25,7 @@ public:
     void setSize(unsigned width, unsigned height);
     bool add(const cImage* image);
     void fillTexture();
-    bool generateResFile(const char* name);
+    bool generateResFile(const char* name, const char* atlasName);
 
     const Bitmap& getBitmap() const
     {
