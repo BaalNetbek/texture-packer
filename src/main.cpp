@@ -25,7 +25,8 @@
 struct sConfig
 {
     unsigned maxTextureSize = 2048;
-    unsigned border = 1;
+    unsigned border = 0;
+    unsigned padding = 1;
     bool pot = false;
     bool trim = false;
     bool overlay = false;
@@ -80,6 +81,13 @@ int main(int argc, char* argv[])
                 config.border = static_cast<unsigned>(atoi(argv[++i]));
             }
         }
+        else if (strcmp(arg, "-p") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                config.padding = static_cast<unsigned>(atoi(argv[++i]));
+            }
+        }
         else if (strcmp(arg, "-max") == 0)
         {
             if (i + 1 < argc)
@@ -117,6 +125,7 @@ int main(int argc, char* argv[])
     }
 
     printf("Border %u px.\n", config.border);
+    printf("Padding %u px.\n", config.padding);
     printf("Overlay: %s.\n", isEnabled(config.overlay));
     printf("Trim sprites: %s.\n", isEnabled(config.trim));
     printf("Power of Two: %s.\n", isEnabled(config.pot));
@@ -147,7 +156,7 @@ int main(int argc, char* argv[])
         });
 
         printf("Packing");
-        cPacker packer(imagesList.size(), config.border);
+        cPacker packer(imagesList.size(), config.border, config.padding);
 
         unsigned area = 0;
         unsigned maxWidth = 0;
@@ -155,9 +164,9 @@ int main(int argc, char* argv[])
         for (auto img : imagesList)
         {
             auto& bmp = img->getBitmap();
-            maxWidth = std::max<unsigned>(maxWidth, bmp.width);
-            maxHeight = std::max<unsigned>(maxHeight, bmp.height);
-            area += (bmp.width + config.border * 2) * (bmp.height + config.border * 2);
+            maxWidth = std::max<unsigned>(maxWidth, bmp.width + config.padding + config.border * 2);
+            maxHeight = std::max<unsigned>(maxHeight, bmp.height + config.padding + config.border * 2);
+            area += (bmp.width + config.padding) * (bmp.height + config.padding);
         }
 
         auto sq = static_cast<unsigned>(sqrt(area));
@@ -261,7 +270,8 @@ void showHelp(const char* name, const sConfig& config)
     printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
     printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
     printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));
-    printf("  -b size            add border around sprite (default %u px)\n", config.border);
+    printf("  -b size            add border around sprites (default %u px)\n", config.border);
+    printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
     printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
 }
 

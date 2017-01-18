@@ -19,7 +19,7 @@ class cImage;
 class cPacker final
 {
 public:
-    cPacker(size_t count, unsigned border);
+    cPacker(size_t count, unsigned border, unsigned padding);
     ~cPacker();
 
     void setSize(unsigned width, unsigned height);
@@ -39,7 +39,7 @@ private:
 
 private:
     unsigned m_border;
-    unsigned m_freePixels;
+    unsigned m_padding;
     Bitmap m_atlas;
 
     struct sImage

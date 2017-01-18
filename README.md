@@ -18,7 +18,8 @@ $ packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
   -pot               make power of two atlas
   -trim              trim sprites
   -overlay           draw overlay over sprite
-  -b size            add border around sprite
+  -b size            add border around sprites
+  -p size            add padding between sprites
   -max size          max atlas size
 ```
 

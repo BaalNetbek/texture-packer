@@ -17,9 +17,9 @@
 #include <cstring>
 #include <sstream>
 
-cPacker::cPacker(size_t count, unsigned border)
+cPacker::cPacker(size_t count, unsigned border, unsigned padding)
     : m_border(border)
-    , m_freePixels(0)
+    , m_padding(padding)
 {
     m_images.reserve(count);
 }
@@ -38,45 +38,31 @@ void cPacker::clear()
 void cPacker::setSize(unsigned width, unsigned height)
 {
     clear();
-
-    m_atlas.width = width;
-    m_atlas.height = height;
-
-    m_freePixels = width * height;
-    m_atlas.data.resize(m_freePixels);
+    m_atlas.setSize(width, height);
 }
 
 bool cPacker::add(const cImage* image)
 {
     auto& bmp = image->getBitmap();
-    const unsigned width = bmp.width + m_border * 2;
-    const unsigned height = bmp.height + m_border * 2;
-    const unsigned pixels = width * height;
 
-    if (pixels > m_freePixels || m_atlas.width < width || m_atlas.height < height)
+    sRect imgRc;
+    const auto padding = m_padding;
+
+    for (unsigned y = m_border, rows = m_atlas.height - bmp.height - m_border; y < rows;)
     {
-        return false;
-    }
+        imgRc.top = y;
+        imgRc.bottom = y + bmp.height + padding;
 
-    sRect img_rc;
-
-    for (unsigned y = 0, rows = m_atlas.height - height; y < rows;)
-    {
-        img_rc.top = y;
-        img_rc.bottom = y + height;
-
-        for (unsigned x = 0, cols = m_atlas.width - width; x < cols;)
+        for (unsigned x = m_border, cols = m_atlas.width - bmp.width - m_border; x < cols;)
         {
-            img_rc.left = x;
-            img_rc.right = x + width;
+            imgRc.left = x;
+            imgRc.right = x + bmp.width + padding;
 
-            auto rc = checkRegion(img_rc);
+            auto rc = checkRegion(imgRc);
             if (rc == nullptr)
             {
-                m_freePixels -= pixels;
-
                 // merge this region into the used region's vector
-                m_images.push_back({ image, img_rc });
+                m_images.push_back({ image, imgRc });
 
                 return true;
             }
