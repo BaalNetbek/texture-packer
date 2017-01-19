@@ -8,6 +8,8 @@
 
 #include "trim.h"
 
+#include <cstdio>
+
 namespace
 {
 
