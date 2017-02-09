@@ -20,25 +20,16 @@ endif()
 # additional compiler flags
 set( CMAKE_CXX_FLAGS "-std=c++11" )
 
-find_package(PNG)
-# find_package(JPEG)
+# include_directories(
+    # )
 
-include_directories(
-    ${PNG_INCLUDE_DIR}
-    # ${JPEG_INCLUDE_DIR}
-    )
-
-link_directories(
-    ${PNG_LIBRARY_DIRS}
-    # ${JPEG_LIBRARY_DIRS}
-    )
+# link_directories(
+    # )
 
 file( GLOB_RECURSE SOURCES "src/*.cpp" )
 
-link_libraries (
-    ${PNG_LIBRARY}
-    # ${JPEG_LIBRARY}
-    )
+# link_libraries (
+    # )
 
 add_executable( packimages
     WIN32 # Only if you don't want the DOS prompt to appear in the background in Windows
