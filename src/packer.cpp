@@ -43,20 +43,22 @@ void cPacker::setSize(unsigned width, unsigned height)
 
 bool cPacker::add(const cImage* image)
 {
-    auto& bmp = image->getBitmap();
+    const auto& bmp = image->getBitmap();
 
-    sRect imgRc;
+    const auto border = m_border;
     const auto padding = m_padding;
 
-    const unsigned rows = m_atlas.height - bmp.height - m_border;
-    const unsigned cols = m_atlas.width - bmp.width - m_border;
+    const auto width = m_atlas.width - bmp.width - border;
+    const auto height = m_atlas.height - bmp.height - border;
 
-    for (unsigned y = m_border; y < rows;)
+    sRect imgRc;
+
+    for (unsigned y = border; y < height;)
     {
         imgRc.top = y;
         imgRc.bottom = y + bmp.height + padding;
 
-        for (unsigned x = m_border; x < cols;)
+        for (unsigned x = border; x < width;)
         {
             imgRc.left = x;
             imgRc.right = x + bmp.width + padding;
@@ -102,16 +104,19 @@ void cPacker::fillTexture(bool overlay)
 void cPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
 {
     auto& bmp = image->getBitmap();
+    const auto width = bmp.width;
+    const auto height = bmp.height;
+
+    const auto offx = rc.left;
+    const auto offy = rc.top;
+    const auto pitch = m_atlas.width;
+
     auto src = bmp.data.data();
 
-    const unsigned offx = rc.left + m_border;
-    const unsigned offy = rc.top + m_border;
-    const unsigned pitch = m_atlas.width;
-
-    for (unsigned y = 0, height = bmp.height; y < height; y++)
+    for (unsigned y = 0; y < height; y++)
     {
         auto dst = m_atlas.data.data() + (y + offy) * pitch + offx;
-        for (unsigned x = 0, width = bmp.width; x < width; x++)
+        for (unsigned x = 0; x < width; x++)
         {
             *dst++ = *src++;
         }
@@ -125,10 +130,10 @@ void cPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
         const float sA = 0.6f;
         const float inv = 1.0f / 255.0f;
 
-        for (unsigned y = 0, height = bmp.height; y < height; y++)
+        for (unsigned y = 0; y < height; y++)
         {
             auto dst = m_atlas.data.data() + (y + offy) * pitch + offx;
-            for (unsigned x = 0, width = bmp.width; x < width; x++)
+            for (unsigned x = 0; x < width; x++)
             {
                 const float dR = dst->r * inv;
                 const float dG = dst->g * inv;
@@ -157,14 +162,16 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
     cFile file;
     if (file.open(name, "w"))
     {
+        const auto padding = m_padding;
+
         std::stringstream out;
         out << "<objects>\n";
         for (const auto& img : m_images)
         {
             auto tx = img.rc.left;
             auto ty = img.rc.top;
-            auto tw = img.rc.width();
-            auto th = img.rc.height();
+            auto tw = img.rc.width() - padding;
+            auto th = img.rc.height() - padding;
             out << "    ";
             out << "<sprite id=\"" << img.image->getName() << "\" texture=\"" << atlasName << "\" ";
             out << "rect=\"" << tx << " " << ty << " " << tw << " " << th << "\" ";
