@@ -56,14 +56,14 @@ bool cPacker::add(const cImage* image)
     for (unsigned y = border; y < height;)
     {
         imgRc.top = y;
-        imgRc.bottom = y + bmp.height + padding;
+        imgRc.bottom = y + bmp.height;
 
         for (unsigned x = border; x < width;)
         {
             imgRc.left = x;
-            imgRc.right = x + bmp.width + padding;
+            imgRc.right = x + bmp.width;
 
-            auto rc = checkRegion(imgRc);
+            const auto rc = checkRegion(imgRc);
             if (rc == nullptr)
             {
                 // merge this region into the used region's vector
@@ -72,7 +72,7 @@ bool cPacker::add(const cImage* image)
                 return true;
             }
 
-            x += rc->width();
+            x += rc->width() + padding;
         }
         y++;
     }
@@ -84,9 +84,10 @@ const sRect* cPacker::checkRegion(const sRect& region) const
 {
     for (const auto& img : m_images)
     {
-        if (img.rc.intersect(region))
+        const auto& rc = img.rc;
+        if (region.left <= rc.right && region.right >= rc.left && region.top <= rc.bottom && region.bottom >= rc.top)
         {
-            return &img.rc;
+            return &rc;
         }
     }
 
@@ -162,20 +163,18 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
     cFile file;
     if (file.open(name, "w"))
     {
-        const auto padding = m_padding;
-
         std::stringstream out;
         out << "<objects>\n";
         for (const auto& img : m_images)
         {
             auto tx = img.rc.left;
             auto ty = img.rc.top;
-            auto tw = img.rc.width() - padding;
-            auto th = img.rc.height() - padding;
+            auto tw = img.rc.width();
+            auto th = img.rc.height();
             out << "    ";
             out << "<sprite id=\"" << img.image->getName() << "\" texture=\"" << atlasName << "\" ";
             out << "rect=\"" << tx << " " << ty << " " << tw << " " << th << "\" ";
-            out << "hotspot=\"" << (tw >> 1) << " " << (th >> 1) << "\" />\n";
+            out << "hotspot=\"" << (tw * 0.5f) << " " << (th * 0.5f) << "\" />\n";
         }
         out << "</objects>\n";
         file.write((void*)out.str().c_str(), out.str().length());
