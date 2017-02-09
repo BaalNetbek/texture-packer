@@ -91,7 +91,7 @@ bool cImageSaver::save(const char* filename) const
     auto src = m_bitmap.data.data();
     for (unsigned y = 0; y < height; y++)
     {
-        auto row = reinterpret_cast<const unsigned char*>(&src[y * width]);
+        auto row = const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(&src[y * width]));
         png_write_row(png, row);
     }
 
