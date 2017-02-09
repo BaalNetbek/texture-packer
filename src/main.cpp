@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.1.0.\n");
+    printf("Texture Packer v1.1.1.\n");
     printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -238,9 +238,11 @@ int main(int argc, char* argv[])
         packer.fillTexture(config.overlay);
 
         // write texture
-        cImageSaver saver(packer.getBitmap());
-        if (saver.save(outputAtlasName) == true)
+        cImageSaver saver(packer.getBitmap(), outputAtlasName);
+        if (saver.save() == true)
         {
+            outputAtlasName = saver.getAtlasName();
+
             // write resource file
             if (outputResName != nullptr)
             {

@@ -8,16 +8,37 @@
 
 #pragma once
 
+#include <string>
+
 struct Bitmap;
 
 class cImageSaver final
 {
 public:
-    cImageSaver(const Bitmap& bitmap);
+    cImageSaver(const Bitmap& bitmap, const char* filename);
     ~cImageSaver();
 
-    bool save(const char* filename) const;
+    const char* getAtlasName() const
+    {
+        return m_filename.c_str();
+    }
 
-protected:
+    bool save() const;
+
+private:
+    enum class Type
+    {
+        png,
+        bmp,
+        tga,
+        unknown,
+    };
+
+    Type getWriter(const char* filename) const;
+
+private:
     const Bitmap& m_bitmap;
+    std::string m_filename;
+
+    Type m_type;
 };
