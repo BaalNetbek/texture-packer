@@ -20,8 +20,8 @@ cImageSaver::cImageSaver(const Bitmap& bitmap, const char* filename)
     : m_bitmap(bitmap)
     , m_filename(filename)
 {
-    auto type = getWriter(filename);
-    if (type == Type::unknown)
+    m_type = getWriter(filename);
+    if (m_type == Type::unknown)
     {
         m_filename += ".png";
         m_type = Type::png;
@@ -77,6 +77,7 @@ bool cImageSaver::save() const
 
     switch (m_type)
     {
+    case Type::unknown:
     case Type::png:
         return stbi_write_png(filename, w, h, 4, data, stride) != 0;
 
