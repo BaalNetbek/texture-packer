@@ -9,5 +9,6 @@ pipelines:
   default:
     - step:
         script: # Modify the commands below to build your repository.
-          - ./configure
+          - apt-get update
+          - apt-get install -y cmake libpng12-dev
           - make release
