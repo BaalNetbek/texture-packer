@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.0.3.\n");
+    printf("Texture Packer v1.0.4.\n");
     printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     std::vector<cImage*> imagesList;
     for (const auto& path : filesList)
     {
-        auto image = std::make_unique<cImage>();
+        std::unique_ptr<cImage> image(new cImage());
         if (image->load(path.c_str(), trim.get()) == true)
         {
             imagesList.push_back(image.release());

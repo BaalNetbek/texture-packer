@@ -10,20 +10,23 @@
 
 struct sRect
 {
-    int width() const
+    unsigned width() const
     {
         return right - left;
     }
 
-    int height() const
+    unsigned height() const
     {
         return bottom - top;
     }
 
-    bool intersect(const sRect& region) const;
+    bool intersect(const sRect& rc) const
+    {
+        return (left < rc.right && right > rc.left && top < rc.bottom && bottom > rc.top);
+    }
 
-    int left;
-    int right;
-    int top;
-    int bottom;
+    unsigned left;
+    unsigned right;
+    unsigned top;
+    unsigned bottom;
 };

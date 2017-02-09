@@ -48,12 +48,15 @@ bool cPacker::add(const cImage* image)
     sRect imgRc;
     const auto padding = m_padding;
 
-    for (unsigned y = m_border, rows = m_atlas.height - bmp.height - m_border; y < rows;)
+    const unsigned rows = m_atlas.height - bmp.height - m_border;
+    const unsigned cols = m_atlas.width - bmp.width - m_border;
+
+    for (unsigned y = m_border; y < rows;)
     {
         imgRc.top = y;
         imgRc.bottom = y + bmp.height + padding;
 
-        for (unsigned x = m_border, cols = m_atlas.width - bmp.width - m_border; x < cols;)
+        for (unsigned x = m_border; x < cols;)
         {
             imgRc.left = x;
             imgRc.right = x + bmp.width + padding;

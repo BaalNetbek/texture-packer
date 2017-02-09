@@ -18,7 +18,7 @@ else()
 endif()
 
 # additional compiler flags
-set( CMAKE_CXX_FLAGS "-std=c++14" )
+set( CMAKE_CXX_FLAGS "-std=c++11" )
 
 find_package(PNG)
 # find_package(JPEG)
