@@ -82,10 +82,14 @@ bool cPacker::add(const cImage* image)
 
 const sRect* cPacker::checkRegion(const sRect& region) const
 {
+    const auto padding = m_padding;
     for (const auto& img : m_images)
     {
         const auto& rc = img.rc;
-        if (region.left <= rc.right && region.right >= rc.left && region.top <= rc.bottom && region.bottom >= rc.top)
+        if (region.left < rc.right + padding
+            && region.right > rc.left + padding
+            && region.top < rc.bottom + padding
+            && region.bottom > rc.top + padding)
         {
             return &rc;
         }
