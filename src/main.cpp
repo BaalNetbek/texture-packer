@@ -9,42 +9,40 @@
 #include "image.h"
 #include "imagesaver.h"
 #include "packer.h"
+#include "size.h"
 #include "trim.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
 #include <dirent.h>
-#include <sys/time.h>
 
 struct sConfig
 {
-    unsigned maxTextureSize = 2048;
-    unsigned border = 0;
-    unsigned padding = 1;
+    uint32_t maxTextureSize = 2048;
+    uint32_t border = 0;
+    uint32_t padding = 1;
     bool pot = false;
     bool trim = false;
     bool overlay = false;
 };
 
 void showHelp(const char* name, const sConfig& config);
-const char* isEnabled(bool enabled);
-unsigned nextPot(unsigned i);
-uint64_t getCurrentTime();
 
 typedef std::vector<std::string> FilesList;
 void addPath(const std::string& path, FilesList& filesList);
+
+sSize calcSize(uint32_t area, const sSize& maxRectSize, const sConfig& config);
 
 int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.1.3.\n");
+    printf("Texture Packer v1.1.4.\n");
     printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -78,21 +76,21 @@ int main(int argc, char* argv[])
         {
             if (i + 1 < argc)
             {
-                config.border = static_cast<unsigned>(atoi(argv[++i]));
+                config.border = static_cast<uint32_t>(atoi(argv[++i]));
             }
         }
         else if (strcmp(arg, "-p") == 0)
         {
             if (i + 1 < argc)
             {
-                config.padding = static_cast<unsigned>(atoi(argv[++i]));
+                config.padding = static_cast<uint32_t>(atoi(argv[++i]));
             }
         }
         else if (strcmp(arg, "-max") == 0)
         {
             if (i + 1 < argc)
             {
-                config.maxTextureSize = static_cast<unsigned>(atoi(argv[++i]));
+                config.maxTextureSize = static_cast<uint32_t>(atoi(argv[++i]));
             }
         }
         else if (strcmp(arg, "-pot") == 0)
@@ -143,7 +141,7 @@ int main(int argc, char* argv[])
         }
     }
     auto sec = (getCurrentTime() - startTime) * 0.000001f;
-    printf("Loaded %u images in %g sec.\n", (unsigned)imagesList.size(), sec);
+    printf("Loaded %u images in %g sec.\n", (uint32_t)imagesList.size(), sec);
 
     if (imagesList.size() > 0)
     {
@@ -152,85 +150,71 @@ int main(int argc, char* argv[])
             auto& bmpa = a->getBitmap();
             auto& bmpb = b->getBitmap();
             return (bmpa.width * bmpa.height > bmpb.width * bmpb.height)
-                && (bmpa.width + bmpa.height > bmpb.width + bmpb.height);
+                   && (bmpa.width + bmpa.height > bmpb.width + bmpb.height);
         });
 
-        printf("Packing");
         cPacker packer(imagesList.size(), config.border, config.padding);
 
-        unsigned area = 0;
-        unsigned maxWidth = 0;
-        unsigned maxHeight = 0;
+        uint32_t area = 0;
+        sSize maxRectSize;
         for (auto img : imagesList)
         {
             auto& bmp = img->getBitmap();
-            maxWidth = std::max<unsigned>(maxWidth, bmp.width + config.padding + config.border * 2);
-            maxHeight = std::max<unsigned>(maxHeight, bmp.height + config.padding + config.border * 2);
+            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.width + config.padding);
+            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.height + config.padding);
             area += (bmp.width + config.padding) * (bmp.height + config.padding);
         }
 
-        auto sq = static_cast<unsigned>(sqrt(area));
-        auto width = std::max<unsigned>(sq, maxWidth);
-        auto height = std::max<unsigned>(sq, maxHeight);
-        if (config.pot)
-        {
-            width = nextPot(width);
-            height = nextPot(area / width);
-        }
+        auto texSize = calcSize(area, maxRectSize, config);
+        // printf("Start from %u x %u.\n", texSize.width, texSize.height);
 
-        // printf("Start from %d x %d.\n", width, height);
         startTime = getCurrentTime();
 
+        printf("Packing ");
         bool done = true;
         do
         {
             done = true;
-            packer.setSize(width, height);
-            for (auto img : imagesList)
+            packer.setSize(texSize);
+            for (size_t i = 0, size = imagesList.size(); i < size; i++)
             {
+                const auto& img = imagesList[i];
+
                 if (packer.add(img) == false)
                 {
-                    printf(".");
-                    fflush(nullptr);
+                    done = false;
 
-                    if (config.pot)
+                    for (; i < size; i++)
                     {
-                        if (width > height)
-                        {
-                            height <<= 1;
-                        }
-                        else
-                        {
-                            width <<= 1;
-                        }
+                        const auto& bmp = imagesList[i]->getBitmap();
+                        auto s = (bmp.width + config.padding) * (bmp.height + config.padding);
+                        area += s;
+                    }
+
+                    texSize = calcSize(area, maxRectSize, config);
+
+                    if (texSize.width > texSize.height)
+                    {
+                        texSize.height = config.pot ? (texSize.height << 1) : (texSize.height + 2);
                     }
                     else
                     {
-                        // expand texture
-                        if ((height & (height - 1)) != 0)
-                        {
-                            height += 2;
-                        }
-                        else
-                        {
-                            width += 2;
-                            if ((width & (width - 1)) == 0)
-                            {
-                                height += 2;
-                            }
-                        }
+                        texSize.width = config.pot ? (texSize.width << 1) : (texSize.width + 2);
                     }
-                    done = false;
+
+                    printf(".");
+                    // printf(" new texture size %u x %u.\n", texSize.width, texSize.height);
+                    fflush(nullptr);
                     break;
                 }
             }
         }
-        while (done == false && width <= config.maxTextureSize && height <= config.maxTextureSize);
+        while (done == false && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);
 
         auto sec = (getCurrentTime() - startTime) * 0.000001f;
         printf(" in %g sec.\n", sec);
 
-        if (width > config.maxTextureSize || height > config.maxTextureSize)
+        if (texSize.width > config.maxTextureSize || texSize.height > config.maxTextureSize)
         {
             printf("Resulting texture too big.\n");
         }
@@ -249,7 +233,7 @@ int main(int argc, char* argv[])
                 packer.generateResFile(outputResName, outputAtlasName);
             }
 
-            printf("Atlas '%s' %u x %u has been created.\n", outputAtlasName, width, height);
+            printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, texSize.width, texSize.height, formatNum(texSize.width * texSize.height));
         }
 
         for (auto img : imagesList)
@@ -275,31 +259,6 @@ void showHelp(const char* name, const sConfig& config)
     printf("  -b size            add border around sprites (default %u px)\n", config.border);
     printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
     printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
-}
-
-const char* isEnabled(bool enabled)
-{
-    return enabled ? "enabled" : "disabled";
-}
-
-unsigned nextPot(unsigned i)
-{
-    i--;
-    i |= i >> 1;
-    i |= i >> 2;
-    i |= i >> 4;
-    i |= i >> 8;
-    i |= i >> 16;
-    i++;
-    return i;
-}
-
-uint64_t getCurrentTime()
-{
-    timeval t;
-    ::gettimeofday(&t, 0);
-
-    return (uint64_t)(t.tv_sec * 1000000 + t.tv_usec);
 }
 
 int DirectoryFilter(const dirent* p)
@@ -339,4 +298,30 @@ void addPath(const std::string& root, FilesList& filesList)
         }
         free(namelist);
     }
+}
+
+sSize calcSize(uint32_t area, const sSize& maxRectSize, const sConfig& config)
+{
+    auto sq = static_cast<uint32_t>(sqrt(area));
+    auto width = std::max<uint32_t>(sq, maxRectSize.width) + config.border * 2;
+    auto height = std::max<uint32_t>(sq, maxRectSize.height) + config.border * 2;
+
+    if (config.pot)
+    {
+        width = nextPot(width);
+        height = nextPot(area / width);
+    }
+    else
+    {
+        if ((height & 0x01) != 0)
+        {
+            height++;
+        }
+        if ((width & 0x01) != 0)
+        {
+            width++;
+        }
+    }
+
+    return { width, height };
 }

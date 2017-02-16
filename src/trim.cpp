@@ -13,12 +13,12 @@
 namespace
 {
 
-    unsigned findLeft(const Bitmap& bitmap)
+    uint32_t findLeft(const Bitmap& bitmap)
     {
-        for (unsigned x = 0; x < bitmap.width; x++)
+        for (uint32_t x = 0; x < bitmap.width; x++)
         {
             auto src = bitmap.data.data() + x;
-            for (unsigned y = 0; y < bitmap.height; y++)
+            for (uint32_t y = 0; y < bitmap.height; y++)
             {
                 if (src->a != 0)
                 {
@@ -31,13 +31,13 @@ namespace
         return bitmap.width;
     }
 
-    unsigned findRigth(const Bitmap& bitmap)
+    uint32_t findRigth(const Bitmap& bitmap)
     {
-        for (unsigned x = 0; x < bitmap.width; x++)
+        for (uint32_t x = 0; x < bitmap.width; x++)
         {
-            unsigned offset = bitmap.width - x - 1;
+            uint32_t offset = bitmap.width - x - 1;
             auto src = bitmap.data.data() + offset;
-            for (unsigned y = 0; y < bitmap.height; y++)
+            for (uint32_t y = 0; y < bitmap.height; y++)
             {
                 if (src->a != 0)
                 {
@@ -50,12 +50,12 @@ namespace
         return 0;
     }
 
-    unsigned findTop(const Bitmap& bitmap)
+    uint32_t findTop(const Bitmap& bitmap)
     {
-        for (unsigned y = 0; y < bitmap.height; y++)
+        for (uint32_t y = 0; y < bitmap.height; y++)
         {
             auto src = bitmap.data.data() + y * bitmap.width;
-            for (unsigned x = 0; x < bitmap.width; x++)
+            for (uint32_t x = 0; x < bitmap.width; x++)
             {
                 if (src->a != 0)
                 {
@@ -68,13 +68,13 @@ namespace
         return bitmap.height;
     }
 
-    unsigned findBottom(const Bitmap& bitmap)
+    uint32_t findBottom(const Bitmap& bitmap)
     {
-        for (unsigned y = 0; y < bitmap.height; y++)
+        for (uint32_t y = 0; y < bitmap.height; y++)
         {
-            unsigned offset = bitmap.height - y - 1;
+            uint32_t offset = bitmap.height - y - 1;
             auto src = bitmap.data.data() + offset * bitmap.width;
-            for (unsigned x = 0; x < bitmap.width; x++)
+            for (uint32_t x = 0; x < bitmap.width; x++)
             {
                 if (src->a != 0)
                 {
@@ -116,9 +116,9 @@ bool cTrim::trim(const char* name, const Bitmap& bitmap)
         m_bitmap.setSize(right - left + 1, bottom - top + 1);
         auto dst = m_bitmap.data.data();
 
-        for (unsigned y = top; y <= bottom; y++)
+        for (uint32_t y = top; y <= bottom; y++)
         {
-            for (unsigned x = left; x <= right; x++)
+            for (uint32_t x = left; x <= right; x++)
             {
                 *dst++ = src[x];
             }

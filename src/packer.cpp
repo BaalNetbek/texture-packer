@@ -7,8 +7,9 @@
 \**********************************************/
 
 #include "packer.h"
-#include "image.h"
 #include "file.h"
+#include "image.h"
+#include "size.h"
 
 #include <climits>
 #include <cmath>
@@ -17,7 +18,7 @@
 #include <cstring>
 #include <sstream>
 
-cPacker::cPacker(size_t count, unsigned border, unsigned padding)
+cPacker::cPacker(size_t count, uint32_t border, uint32_t padding)
     : m_border(border)
     , m_padding(padding)
 {
@@ -35,10 +36,10 @@ void cPacker::clear()
     m_images.clear();
 }
 
-void cPacker::setSize(unsigned width, unsigned height)
+void cPacker::setSize(const sSize& size)
 {
     clear();
-    m_atlas.setSize(width, height);
+    m_atlas.setSize(size.width, size.height);
 }
 
 bool cPacker::add(const cImage* image)
@@ -53,12 +54,12 @@ bool cPacker::add(const cImage* image)
 
     sRect imgRc;
 
-    for (unsigned y = border; y < height;)
+    for (uint32_t y = border; y < height;)
     {
         imgRc.top = y;
         imgRc.bottom = y + bmp.height;
 
-        for (unsigned x = border; x < width;)
+        for (uint32_t x = border; x < width;)
         {
             imgRc.left = x;
             imgRc.right = x + bmp.width;
@@ -118,10 +119,10 @@ void cPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
 
     auto src = bmp.data.data();
 
-    for (unsigned y = 0; y < height; y++)
+    for (uint32_t y = 0; y < height; y++)
     {
         auto dst = m_atlas.data.data() + (y + offy) * pitch + offx;
-        for (unsigned x = 0; x < width; x++)
+        for (uint32_t x = 0; x < width; x++)
         {
             *dst++ = *src++;
         }
@@ -135,10 +136,10 @@ void cPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
         const float sA = 0.6f;
         const float inv = 1.0f / 255.0f;
 
-        for (unsigned y = 0; y < height; y++)
+        for (uint32_t y = 0; y < height; y++)
         {
             auto dst = m_atlas.data.data() + (y + offy) * pitch + offx;
-            for (unsigned x = 0; x < width; x++)
+            for (uint32_t x = 0; x < width; x++)
             {
                 const float dR = dst->r * inv;
                 const float dG = dst->g * inv;
@@ -152,10 +153,10 @@ void cPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
 
                 *dst++ =
                 {
-                    static_cast<unsigned char>(r * 255.0f),
-                    static_cast<unsigned char>(g * 255.0f),
-                    static_cast<unsigned char>(b * 255.0f),
-                    static_cast<unsigned char>(a * 255.0f)
+                    static_cast<uint8_t>(r * 255.0f),
+                    static_cast<uint8_t>(g * 255.0f),
+                    static_cast<uint8_t>(b * 255.0f),
+                    static_cast<uint8_t>(a * 255.0f)
                 };
             }
         }

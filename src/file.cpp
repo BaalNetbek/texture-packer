@@ -53,7 +53,7 @@ int cFile::seek(long offset, int whence) const
     return fseek((FILE*)m_file, offset, whence);
 }
 
-unsigned cFile::read(void* ptr, unsigned size) const
+uint32_t cFile::read(void* ptr, uint32_t size) const
 {
     if (m_file != nullptr)
     {
@@ -63,7 +63,7 @@ unsigned cFile::read(void* ptr, unsigned size) const
     return 0;
 }
 
-unsigned cFile::write(void* ptr, unsigned size) const
+uint32_t cFile::write(void* ptr, uint32_t size) const
 {
     if (m_file != nullptr)
     {

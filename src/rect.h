@@ -8,20 +8,22 @@
 
 #pragma once
 
+#include <cstdint>
+
 struct sRect
 {
-    unsigned width() const
+    uint32_t width() const
     {
         return right - left;
     }
 
-    unsigned height() const
+    uint32_t height() const
     {
         return bottom - top;
     }
 
-    unsigned left;
-    unsigned right;
-    unsigned top;
-    unsigned bottom;
+    uint32_t left;
+    uint32_t right;
+    uint32_t top;
+    uint32_t bottom;
 };

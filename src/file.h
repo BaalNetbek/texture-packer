@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 class cFile final
 {
 public:
@@ -21,8 +23,8 @@ public:
     void* getHandle() const { return m_file; }
 
     virtual int seek(long offset, int whence) const;
-    virtual unsigned read(void* ptr, unsigned size) const;
-    virtual unsigned write(void* ptr, unsigned size) const;
+    virtual uint32_t read(void* ptr, uint32_t size) const;
+    virtual uint32_t write(void* ptr, uint32_t size) const;
     virtual long getSize() const { return m_size; }
 
 protected:
