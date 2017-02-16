@@ -7,9 +7,11 @@
 \**********************************************/
 
 #include "packer.h"
+#include "config.h"
 #include "file.h"
 #include "image.h"
 #include "size.h"
+#include "trim.h"
 
 #include <climits>
 #include <cmath>
@@ -18,9 +20,9 @@
 #include <cstring>
 #include <sstream>
 
-cPacker::cPacker(size_t count, uint32_t border, uint32_t padding)
-    : m_border(border)
-    , m_padding(padding)
+cPacker::cPacker(size_t count, const sConfig& config)
+    : m_border(config.border)
+    , m_padding(config.padding)
 {
     m_images.reserve(count);
 }
@@ -88,9 +90,9 @@ const sRect* cPacker::checkRegion(const sRect& region) const
     {
         const auto& rc = img.rc;
         if (region.left < rc.right + padding
-            && region.right > rc.left + padding
+            && region.right + padding > rc.left
             && region.top < rc.bottom + padding
-            && region.bottom > rc.top + padding)
+            && region.bottom + padding > rc.top)
         {
             return &rc;
         }
@@ -99,11 +101,17 @@ const sRect* cPacker::checkRegion(const sRect& region) const
     return nullptr;
 }
 
-void cPacker::fillTexture(bool overlay)
+void cPacker::fillTexture(const sConfig& config)
 {
     for (const auto& img : m_images)
     {
-        copyBitmap(img.rc, img.image, overlay);
+        copyBitmap(img.rc, img.image, config.overlay);
+    }
+
+    cTrimBorder trim(config);
+    if (trim.trim("atlas", m_atlas))
+    {
+        m_atlas = trim.getBitmap();
     }
 }
 

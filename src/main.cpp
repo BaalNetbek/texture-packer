@@ -7,6 +7,7 @@
 \**********************************************/
 
 #include "image.h"
+#include "config.h"
 #include "imagesaver.h"
 #include "packer.h"
 #include "size.h"
@@ -21,16 +22,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-struct sConfig
-{
-    uint32_t maxTextureSize = 2048;
-    uint32_t border = 0;
-    uint32_t padding = 1;
-    bool pot = false;
-    bool trim = false;
-    bool overlay = false;
-};
 
 void showHelp(const char* name, const sConfig& config);
 
@@ -154,7 +145,7 @@ int main(int argc, char* argv[])
                    && (bmpa.width + bmpa.height > bmpb.width + bmpb.height);
         });
 
-        cPacker packer(imagesList.size(), config.border, config.padding);
+        cPacker packer(imagesList.size(), config);
 
         uint32_t area = 0;
         sSize maxRectSize;
@@ -215,12 +206,13 @@ int main(int argc, char* argv[])
         auto sec = (getCurrentTime() - startTime) * 0.000001f;
         printf(" in %g sec.\n", sec);
 
-        if (texSize.width > config.maxTextureSize || texSize.height > config.maxTextureSize)
+        packer.fillTexture(config);
+
+        auto& atlas = packer.getBitmap();
+        if (atlas.width > config.maxTextureSize || atlas.height > config.maxTextureSize)
         {
             printf("Resulting texture too big.\n");
         }
-
-        packer.fillTexture(config.overlay);
 
         // write texture
         cImageSaver saver(packer.getBitmap(), outputAtlasName);
@@ -234,7 +226,7 @@ int main(int argc, char* argv[])
                 packer.generateResFile(outputResName, outputAtlasName);
             }
 
-            printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, texSize.width, texSize.height, formatNum(texSize.width * texSize.height));
+            printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, atlas.width, atlas.height, formatNum(texSize.width * texSize.height));
         }
 
         for (auto img : imagesList)
@@ -307,22 +299,8 @@ sSize calcSize(uint32_t area, const sSize& maxRectSize, const sConfig& config)
     auto width = std::max<uint32_t>(sq, maxRectSize.width) + config.border * 2;
     auto height = std::max<uint32_t>(sq, maxRectSize.height) + config.border * 2;
 
-    if (config.pot)
-    {
-        width = nextPot(width);
-        height = nextPot(area / width);
-    }
-    else
-    {
-        if ((height & 0x01) != 0)
-        {
-            height++;
-        }
-        if ((width & 0x01) != 0)
-        {
-            width++;
-        }
-    }
+    width = fixSize(width, config.pot);
+    height = fixSize(area / width, config.pot);
 
     return { width, height };
 }

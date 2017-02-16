@@ -15,17 +15,18 @@
 #include <vector>
 
 class cImage;
+struct sConfig;
 struct sSize;
 
 class cPacker final
 {
 public:
-    cPacker(size_t count, uint32_t border, uint32_t padding);
+    cPacker(size_t count, const sConfig& config);
     ~cPacker();
 
     void setSize(const sSize& size);
     bool add(const cImage* image);
-    void fillTexture(bool overlay);
+    void fillTexture(const sConfig& config);
     bool generateResFile(const char* name, const char* atlasName);
 
     const Bitmap& getBitmap() const

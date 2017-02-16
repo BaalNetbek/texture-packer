@@ -24,6 +24,20 @@ uint32_t nextPot(uint32_t i)
     return i;
 }
 
+uint32_t fixSize(uint32_t size, bool isPot)
+{
+    if (isPot)
+    {
+        size = nextPot(size);
+    }
+    else if ((size & 0x01) != 0)
+    {
+        size++;
+    }
+
+    return size;
+}
+
 uint64_t getCurrentTime()
 {
     timeval t;
