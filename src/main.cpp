@@ -16,10 +16,11 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
+#include <dirent.h>
 #include <memory>
 #include <string>
 #include <vector>
-#include <dirent.h>
 
 struct sConfig
 {
