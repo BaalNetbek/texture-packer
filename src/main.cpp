@@ -6,12 +6,12 @@
 *
 \**********************************************/
 
-#include "image.h"
 #include "config.h"
+#include "image.h"
 #include "imagesaver.h"
 #include "packer.h"
-#include "size.h"
 #include "trim.h"
+#include "types/size.h"
 #include "utils.h"
 
 #include <algorithm>
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.1.4.\n");
+    printf("Texture Packer v1.1.5.\n");
     printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -78,13 +78,13 @@ int main(int argc, char* argv[])
                 config.padding = static_cast<uint32_t>(atoi(argv[++i]));
             }
         }
-        else if (strcmp(arg, "-max") == 0)
-        {
-            if (i + 1 < argc)
-            {
-                config.maxTextureSize = static_cast<uint32_t>(atoi(argv[++i]));
-            }
-        }
+        // else if (strcmp(arg, "-max") == 0)
+        // {
+        // if (i + 1 < argc)
+        // {
+        // config.maxTextureSize = static_cast<uint32_t>(atoi(argv[++i]));
+        // }
+        // }
         else if (strcmp(arg, "-pot") == 0)
         {
             config.pot = true;
@@ -92,6 +92,14 @@ int main(int argc, char* argv[])
         else if (strcmp(arg, "-trim") == 0)
         {
             config.trim = true;
+        }
+        else if (strcmp(arg, "-dupes") == 0)
+        {
+            config.alowDupes = true;
+        }
+        else if (strcmp(arg, "-slow") == 0)
+        {
+            config.slowMethod = true;
         }
         else if (strcmp(arg, "-overlay") == 0)
         {
@@ -117,10 +125,27 @@ int main(int argc, char* argv[])
     printf("Border %u px.\n", config.border);
     printf("Padding %u px.\n", config.padding);
     printf("Overlay: %s.\n", isEnabled(config.overlay));
+    printf("Allow dupes: %s.\n", isEnabled(config.alowDupes));
     printf("Trim sprites: %s.\n", isEnabled(config.trim));
     printf("Power of Two: %s.\n", isEnabled(config.pot));
-    printf("Max atlas size %u px.\n", config.maxTextureSize);
+    printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
+    // printf("Max atlas size %u px.\n", config.maxTextureSize);
+    printf("\n");
 
+    const auto totalFiles = (uint32_t)filesList.size();
+
+    // sort and remove dupes
+    if (config.alowDupes == false)
+    {
+        std::sort(filesList.begin(), filesList.end());
+        auto it = std::unique(filesList.begin(), filesList.end());
+        filesList.resize(std::distance(filesList.begin(), it));
+    }
+
+    uint32_t area = 0;
+    sSize maxRectSize;
+
+    // load images
     auto startTime = getCurrentTime();
     std::unique_ptr<cTrim> trim(config.trim ? new cTrim() : nullptr);
     std::vector<cImage*> imagesList;
@@ -129,33 +154,25 @@ int main(int argc, char* argv[])
         std::unique_ptr<cImage> image(new cImage());
         if (image->load(path.c_str(), trim.get()) == true)
         {
+            auto& bmp = image->getBitmap();
+            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.width + config.padding);
+            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.height + config.padding);
+            area += (bmp.width + config.padding) * (bmp.height + config.padding);
+
             imagesList.push_back(image.release());
         }
     }
     auto sec = (getCurrentTime() - startTime) * 0.000001f;
-    printf("Loaded %u images in %g sec.\n", (uint32_t)imagesList.size(), sec);
+    printf("Loaded %u (%u) images in %g sec.\n", (uint32_t)imagesList.size(), totalFiles, sec);
 
     if (imagesList.size() > 0)
     {
-        std::sort(imagesList.begin(), imagesList.end(), [](const cImage * a, const cImage * b)
-        {
-            auto& bmpa = a->getBitmap();
-            auto& bmpb = b->getBitmap();
-            return (bmpa.width * bmpa.height > bmpb.width * bmpb.height)
-                   && (bmpa.width + bmpa.height > bmpb.width + bmpb.height);
-        });
-
         cPacker packer(imagesList.size(), config);
 
-        uint32_t area = 0;
-        sSize maxRectSize;
-        for (auto img : imagesList)
+        std::sort(imagesList.begin(), imagesList.end(), [&packer](const cImage * a, const cImage * b)
         {
-            auto& bmp = img->getBitmap();
-            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.width + config.padding);
-            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.height + config.padding);
-            area += (bmp.width + config.padding) * (bmp.height + config.padding);
-        }
+            return packer.compare(a, b);
+        });
 
         auto texSize = calcSize(area, maxRectSize, config);
         // printf("Start from %u x %u.\n", texSize.width, texSize.height);
@@ -163,6 +180,7 @@ int main(int argc, char* argv[])
         startTime = getCurrentTime();
 
         printf("Packing ");
+        fflush(nullptr);
         bool done = true;
         do
         {
@@ -185,49 +203,39 @@ int main(int argc, char* argv[])
 
                     texSize = calcSize(area, maxRectSize, config);
 
-                    if (texSize.width > texSize.height)
-                    {
-                        texSize.height = config.pot ? (texSize.height << 1) : (texSize.height + 2);
-                    }
-                    else
-                    {
-                        texSize.width = config.pot ? (texSize.width << 1) : (texSize.width + 2);
-                    }
-
-                    printf(".");
                     // printf(" new texture size %u x %u.\n", texSize.width, texSize.height);
+                    printf(".");
                     fflush(nullptr);
                     break;
                 }
             }
-        }
-        while (done == false && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);
 
-        auto sec = (getCurrentTime() - startTime) * 0.000001f;
-        printf(" in %g sec.\n", sec);
-
-        packer.fillTexture(config);
-
-        auto& atlas = packer.getBitmap();
-        if (atlas.width > config.maxTextureSize || atlas.height > config.maxTextureSize)
-        {
-            printf("Resulting texture too big.\n");
-        }
-
-        // write texture
-        cImageSaver saver(packer.getBitmap(), outputAtlasName);
-        if (saver.save() == true)
-        {
-            outputAtlasName = saver.getAtlasName();
-
-            // write resource file
-            if (outputResName != nullptr)
+            if (done)
             {
-                packer.generateResFile(outputResName, outputAtlasName);
-            }
+                auto sec = (getCurrentTime() - startTime) * 0.000001f;
+                printf(" in %g sec.\n", sec);
+                fflush(nullptr);
 
-            printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, atlas.width, atlas.height, formatNum(texSize.width * texSize.height));
+                packer.buildAtlas();
+
+                auto& atlas = packer.getBitmap();
+                // write texture
+                cImageSaver saver(packer.getBitmap(), outputAtlasName);
+                if (saver.save() == true)
+                {
+                    outputAtlasName = saver.getAtlasName();
+
+                    // write resource file
+                    if (outputResName != nullptr)
+                    {
+                        packer.generateResFile(outputResName, outputAtlasName);
+                    }
+
+                    printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, atlas.width, atlas.height, formatNum(atlas.width * atlas.height));
+                }
+            }
         }
+        while (done == false);// && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);
 
         for (auto img : imagesList)
         {
@@ -249,9 +257,11 @@ void showHelp(const char* name, const sConfig& config)
     printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
     printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
     printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));
+    printf("  -dupes             allow dupes (default %s)\n", isEnabled(config.alowDupes));
+    printf("  -slow              use slow method instead kd-tree (default %s)\n", isEnabled(config.slowMethod));
     printf("  -b size            add border around sprites (default %u px)\n", config.border);
     printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
-    printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
+    // printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
 }
 
 int DirectoryFilter(const dirent* p)

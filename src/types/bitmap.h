@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <vector>
 
-struct Bitmap
+struct sBitmap
 {
     void clear()
     {

@@ -7,8 +7,8 @@
 \**********************************************/
 
 #include "imagesaver.h"
-#include "bitmap.h"
 #include "file.h"
+#include "types/bitmap.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cstring>
 
-cImageSaver::cImageSaver(const Bitmap& bitmap, const char* filename)
+cImageSaver::cImageSaver(const sBitmap& bitmap, const char* filename)
     : m_bitmap(bitmap)
     , m_filename(filename)
 {

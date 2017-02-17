@@ -12,7 +12,7 @@
 
 #include <cstdio>
 
-bool cTrim::trim(const char* name, const Bitmap& input)
+bool cTrim::trim(const char* name, const sBitmap& input)
 {
     m_bitmap.clear();
 
@@ -52,7 +52,7 @@ bool cTrim::trim(const char* name, const Bitmap& input)
     return true;
 }
 
-uint32_t cTrim::findLeft(const Bitmap& input) const
+uint32_t cTrim::findLeft(const sBitmap& input) const
 {
     for (uint32_t x = 0; x < input.width; x++)
     {
@@ -70,7 +70,7 @@ uint32_t cTrim::findLeft(const Bitmap& input) const
     return input.width;
 }
 
-uint32_t cTrim::findRigth(const Bitmap& input) const
+uint32_t cTrim::findRigth(const sBitmap& input) const
 {
     for (uint32_t x = 0; x < input.width; x++)
     {
@@ -89,7 +89,7 @@ uint32_t cTrim::findRigth(const Bitmap& input) const
     return 0;
 }
 
-uint32_t cTrim::findTop(const Bitmap& input) const
+uint32_t cTrim::findTop(const sBitmap& input) const
 {
     for (uint32_t y = 0; y < input.height; y++)
     {
@@ -107,7 +107,7 @@ uint32_t cTrim::findTop(const Bitmap& input) const
     return input.height;
 }
 
-uint32_t cTrim::findBottom(const Bitmap& input) const
+uint32_t cTrim::findBottom(const sBitmap& input) const
 {
     for (uint32_t y = 0; y < input.height; y++)
     {
@@ -128,13 +128,13 @@ uint32_t cTrim::findBottom(const Bitmap& input) const
 
 
 
-cTrimBorder::cTrimBorder(const sConfig& config)
+cTrimRigthBottom::cTrimRigthBottom(const sConfig& config)
     : cTrim()
     , m_config(config)
 {
 }
 
-bool cTrimBorder::trim(const char* name, const Bitmap& input)
+bool cTrimRigthBottom::trim(const char* name, const sBitmap& input)
 {
     m_bitmap.clear();
 

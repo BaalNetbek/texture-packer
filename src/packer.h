@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include "bitmap.h"
-#include "rect.h"
+#include "types/bitmap.h"
+#include "types/rect.h"
 
 #include <cstddef>
 #include <vector>
 
+class AtlasPacker;
 class cImage;
 struct sConfig;
 struct sSize;
@@ -24,30 +25,17 @@ public:
     cPacker(size_t count, const sConfig& config);
     ~cPacker();
 
+    bool compare(const cImage* a, const cImage* b) const;
+
     void setSize(const sSize& size);
     bool add(const cImage* image);
-    void fillTexture(const sConfig& config);
+    void buildAtlas();
+
+    const sBitmap& getBitmap() const;
+
     bool generateResFile(const char* name, const char* atlasName);
 
-    const Bitmap& getBitmap() const
-    {
-        return m_atlas;
-    }
-
 private:
-    void clear();
-    const sRect* checkRegion(const sRect& region) const;
-    void copyBitmap(const sRect& test, const cImage* image, bool overlay);
-
-private:
-    uint32_t m_border;
-    uint32_t m_padding;
-    Bitmap m_atlas;
-
-    struct sImage
-    {
-        const cImage* image;
-        sRect rc;
-    };
-    std::vector<sImage> m_images;
+    const sConfig& m_config;
+    AtlasPacker* m_packer;
 };

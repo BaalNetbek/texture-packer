@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "bitmap.h"
+#include "types/bitmap.h"
 
 #include <string>
 
@@ -21,7 +21,7 @@ public:
 
     bool load(const char* name, cTrim* trim);
 
-    const Bitmap& getBitmap() const
+    const sBitmap& getBitmap() const
     {
         return m_bitmap;
     }
@@ -31,7 +31,7 @@ public:
         return m_name;
     }
 
-protected:
+private:
     std::string m_name;
-    Bitmap m_bitmap;
+    sBitmap m_bitmap;
 };
