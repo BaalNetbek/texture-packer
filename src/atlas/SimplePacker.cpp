@@ -10,7 +10,7 @@
 #include "../image.h"
 #include "../types/size.h"
 
-SimplePacker::SimplePacker(size_t count, uint32_t padding, uint32_t border)
+SimplePacker::SimplePacker(uint32_t count, uint32_t padding, uint32_t border)
     : AtlasPacker(padding, border)
 {
     m_images.reserve(count);

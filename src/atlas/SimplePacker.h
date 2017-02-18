@@ -10,11 +10,12 @@
 
 #include "AtlasPacker.h"
 #include "../types/rect.h"
+#include "../types/rect.h"
 
 class SimplePacker final : public AtlasPacker
 {
 public:
-    SimplePacker(size_t count, uint32_t padding, uint32_t border);
+    SimplePacker(uint32_t count, uint32_t padding, uint32_t border);
     ~SimplePacker();
 
     bool compare(const cImage* a, const cImage* b) const override;
