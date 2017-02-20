@@ -21,9 +21,6 @@ public:
         , m_childA(nullptr)
         , m_childB(nullptr)
     {
-        m_rect = area;
-        m_rect.right -= padding;
-        m_rect.bottom -= padding;
     }
 
     ~cKDNode()
@@ -50,6 +47,10 @@ public:
             const auto nodeWidth = m_area.width();
             const auto nodeHeight = m_area.height();
 
+            const auto x = m_area.left;
+            const auto y = m_area.top;
+            m_rect = { x, y, x + size.width, y + size.height };
+
             // size matches exactly
             if (imgWidth == nodeWidth && imgHeight == nodeHeight)
             {
@@ -66,9 +67,6 @@ public:
             // split this node in two
             const auto subwidth  = nodeWidth - imgWidth;
             const auto subheight = nodeHeight - imgHeight;
-
-            const auto x = m_area.left;
-            const auto y = m_area.top;
 
             // static int last = -1;
             if (subwidth <= subheight)
@@ -160,7 +158,7 @@ void KDTreePacker::setSize(const sSize& size)
     const auto border = m_border;
 
     delete m_root;
-    m_root = new cKDNode({ border, border, size.width - border * 2, size.height - border * 2 }, m_padding);
+    m_root = new cKDNode({ border, border, size.width - border, size.height - border }, m_padding);
 
     m_nodes.clear();
     m_atlas.setSize(size.width, size.height);

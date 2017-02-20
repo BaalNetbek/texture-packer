@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.1.5.\n");
+    printf("Texture Packer v1.1.6.\n");
     printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
