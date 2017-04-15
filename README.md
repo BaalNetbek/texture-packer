@@ -20,9 +20,10 @@ $ packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
   -pot               make power of two atlas
   -trim              trim sprites
   -overlay           draw overlay over sprite
+  -dupes             allow dupes
+  -slow              use slow method instead kd-tree
   -b size            add border around sprites
   -p size            add padding between sprites
-  -max size          max atlas size
 ```
 
 ##Download and build##
@@ -35,15 +36,15 @@ $ make release
 
 ##Input files notes##
 
-> JPEG baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib). 
-> PNG 1/2/4/8-bit-per-channel (16 bpc not supported). 
-> TGA (not sure what subset, if a subset). 
-> BMP non-1bpp, non-RLE. 
-> PSD (composited view only, no extra channels, 8/16 bit-per-channel). 
-> GIF (*comp always reports as 4-channel). 
-> HDR (radiance rgbE format). 
-> PIC (Softimage PIC). 
-> PNM (PPM and PGM binary only). 
+* `JPEG` baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib).
+* `PNG` 1/2/4/8-bit-per-channel (16 bpc not supported).
+* `TGA` (not sure what subset, if a subset).
+* `BMP` non-1bpp, non-RLE.
+* `PSD` (composited view only, no extra channels, 8/16 bit-per-channel).
+* `GIF` (*comp always reports as 4-channel).
+* `HDR` (radiance rgbE format).
+* `PIC` (Softimage PIC).
+* `PNM` (PPM and PGM binary only).
 
 ***
 ```
