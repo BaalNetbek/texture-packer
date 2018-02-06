@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.1.6.\n");
-    printf("Copyright (c) 2017 Andrey A. Ugolnik.\n\n");
+    printf("Texture Packer v1.1.7.\n");
+    printf("Copyright (c) 2017-2018 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
         showHelp(argv[0], config);
@@ -107,12 +107,19 @@ int main(int argc, char* argv[])
         }
         else
         {
-            std::string path = arg;
-            if (path[path.length() - 1] == '/')
+            if (cImage::IsImage(arg))
             {
-                path = path.substr(0, path.length() - 1);
+                filesList.push_back(arg);
             }
-            addPath(path, filesList);
+            else
+            {
+                std::string path = arg;
+                if (path[path.length() - 1] == '/')
+                {
+                    path = path.substr(0, path.length() - 1);
+                }
+                addPath(path, filesList);
+            }
         }
     }
 
