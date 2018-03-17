@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.1.7.\n");
+    printf("Texture Packer v1.1.8.\n");
     printf("Copyright (c) 2017-2018 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
 
     const char* outputAtlasName = nullptr;
     const char* outputResName = nullptr;
+    const char* resPathPrefix = nullptr;
     FilesList filesList;
 
     for (int i = 1; i < argc; i++)
@@ -62,6 +63,13 @@ int main(int argc, char* argv[])
             if (i + 1 < argc)
             {
                 outputResName = argv[++i];
+            }
+        }
+        else if (strcmp(arg, "-prefix") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                resPathPrefix = argv[++i];
             }
         }
         else if (strcmp(arg, "-b") == 0)
@@ -137,6 +145,10 @@ int main(int argc, char* argv[])
     printf("Power of Two: %s.\n", isEnabled(config.pot));
     printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
     // printf("Max atlas size %u px.\n", config.maxTextureSize);
+    if (resPathPrefix != nullptr)
+    {
+        printf("Resource path prefix: %s.\n", resPathPrefix);
+    }
     printf("\n");
 
     const auto totalFiles = (uint32_t)filesList.size();
@@ -235,7 +247,10 @@ int main(int argc, char* argv[])
                     // write resource file
                     if (outputResName != nullptr)
                     {
-                        packer.generateResFile(outputResName, outputAtlasName);
+                        std::string atlasName = resPathPrefix != nullptr ? resPathPrefix : "";
+                        atlasName += outputAtlasName;
+
+                        packer.generateResFile(outputResName, atlasName.c_str());
                     }
 
                     printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, atlas.width, atlas.height, formatNum(atlas.width * atlas.height));
@@ -261,6 +276,7 @@ void showHelp(const char* name, const sConfig& config)
     printf("  INPUT_IMAGE        input image name or directory separated by space\n");
     printf("  -o ATLAS           output atlas name (default PNG)\n");
     printf("  -res DESC_TEXTURE  output atlas description as XML\n");
+    printf("  -prefix STRING     add prefix to texture path\n");
     printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
     printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
     printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));

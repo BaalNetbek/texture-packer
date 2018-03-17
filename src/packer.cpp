@@ -14,6 +14,8 @@
 #include "image.h"
 #include "trim.h"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -75,11 +77,26 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
     {
         std::stringstream out;
 
-        out << "<objects>\n";
-        for (uint32_t i = 0, size = m_packer->getRectsCount(); i < size; i++)
+        const uint32_t size = m_packer->getRectsCount();
+        std::vector<uint32_t> indexes(size);
+        for (uint32_t i = 0; i < size; i++)
         {
-            auto& name = m_packer->getImageByIndex(i)->getName();
-            const auto& rc = m_packer->getRectByIndex(i);
+            indexes[i] = i;
+        }
+
+        std::sort(indexes.begin(), indexes.end(), [this](uint32_t a, uint32_t b) {
+            auto& na = m_packer->getImageByIndex(a)->getName();
+            auto& nb = m_packer->getImageByIndex(b)->getName();
+            return na < nb;
+        });
+
+        out << "<objects>\n";
+        for (uint32_t i = 0; i < size; i++)
+        {
+            const uint32_t idx = indexes[i];
+
+            auto& name = m_packer->getImageByIndex(idx)->getName();
+            const auto& rc = m_packer->getRectByIndex(idx);
             const auto tx = rc.left;
             const auto ty = rc.top;
             const auto tw = rc.width();
@@ -88,7 +105,7 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
             out << "    ";
             out << "<sprite id=\"" << name << "\" texture=\"" << atlasName << "\" ";
             out << "rect=\"" << tx << " " << ty << " " << tw << " " << th << "\" ";
-            out << "hotspot=\"" << (tw * 0.5f) << " " << (th * 0.5f) << "\" />\n";
+            out << "hotspot=\"" << std::round(tw * 0.5f) << " " << std::round(th * 0.5f) << "\" />\n";
         }
         out << "</objects>\n";
 
