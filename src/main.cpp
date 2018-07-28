@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.1.8.\n");
+    printf("Texture Packer v1.1.9.\n");
     printf("Copyright (c) 2017-2018 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -109,6 +109,10 @@ int main(int argc, char* argv[])
         {
             config.slowMethod = true;
         }
+        else if (strcmp(arg, "-dropext") == 0)
+        {
+            config.dropExt = true;
+        }
         else if (strcmp(arg, "-overlay") == 0)
         {
             config.overlay = true;
@@ -144,6 +148,7 @@ int main(int argc, char* argv[])
     printf("Trim sprites: %s.\n", isEnabled(config.trim));
     printf("Power of Two: %s.\n", isEnabled(config.pot));
     printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
+    printf("Drop extension: %s.\n", isEnabled(config.dropExt));
     // printf("Max atlas size %u px.\n", config.maxTextureSize);
     if (resPathPrefix != nullptr)
     {
@@ -284,6 +289,7 @@ void showHelp(const char* name, const sConfig& config)
     printf("  -slow              use slow method instead kd-tree (default %s)\n", isEnabled(config.slowMethod));
     printf("  -b size            add border around sprites (default %u px)\n", config.border);
     printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
+    printf("  -dropext           drop file extension from sprite id (default %s)\n", isEnabled(config.dropExt));
     // printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
 }
 

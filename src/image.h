@@ -31,7 +31,13 @@ public:
         return m_name;
     }
 
+    const std::string& getSpriteId() const
+    {
+        return m_spriteId;
+    }
+
 private:
     std::string m_name;
+    std::string m_spriteId;
     sBitmap m_bitmap;
 };

@@ -95,7 +95,7 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
         {
             const uint32_t idx = indexes[i];
 
-            auto& name = m_packer->getImageByIndex(idx)->getName();
+            auto& spriteId = m_packer->getImageByIndex(idx)->getSpriteId();
             const auto& rc = m_packer->getRectByIndex(idx);
             const auto tx = rc.left;
             const auto ty = rc.top;
@@ -103,7 +103,7 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
             const auto th = rc.height();
 
             out << "    ";
-            out << "<sprite id=\"" << name << "\" texture=\"" << atlasName << "\" ";
+            out << "<sprite id=\"" << spriteId << "\" texture=\"" << atlasName << "\" ";
             out << "rect=\"" << tx << " " << ty << " " << tw << " " << th << "\" ";
             out << "hotspot=\"" << std::round(tw * 0.5f) << " " << std::round(th * 0.5f) << "\" />\n";
         }

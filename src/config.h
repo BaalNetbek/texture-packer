@@ -19,4 +19,5 @@ struct sConfig
     bool overlay = false;
     bool alowDupes = false;
     bool slowMethod = false;
+    bool dropExt = false;
 };

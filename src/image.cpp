@@ -30,6 +30,13 @@ bool cImage::load(const char* name, cTrim* trim)
 {
     m_name = name;
 
+    m_spriteId = name;
+    auto pos = m_spriteId.find_last_of(".");
+    if (pos != std::string::npos)
+    {
+        m_spriteId.erase(pos);
+    }
+
     //     N=#comp     components
     //       1           grey
     //       2           grey, alpha
