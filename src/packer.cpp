@@ -90,7 +90,11 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
             return na < nb;
         });
 
-        out << "<objects>\n";
+        out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+
+        auto& bitmap = getBitmap();
+        out << "<atlas width=\"" << bitmap.width << "\" height=\"" << bitmap.height << "\">\n";
+
         for (uint32_t i = 0; i < size; i++)
         {
             const uint32_t idx = indexes[i];
@@ -103,11 +107,11 @@ bool cPacker::generateResFile(const char* name, const char* atlasName)
             const auto th = rc.height();
 
             out << "    ";
-            out << "<sprite id=\"" << spriteId << "\" texture=\"" << atlasName << "\" ";
+            out << "<" << spriteId << " texture=\"" << atlasName << "\" ";
             out << "rect=\"" << tx << " " << ty << " " << tw << " " << th << "\" ";
             out << "hotspot=\"" << std::round(tw * 0.5f) << " " << std::round(th * 0.5f) << "\" />\n";
         }
-        out << "</objects>\n";
+        out << "</atlas>\n";
 
         file.write((void*)out.str().c_str(), out.str().length());
 
