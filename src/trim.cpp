@@ -12,7 +12,7 @@
 
 #include <cstdio>
 
-bool cTrim::trim(const char* name, const sBitmap& input)
+bool cTrim::trim(const char* path, const sBitmap& input)
 {
     m_bitmap.clear();
 
@@ -28,11 +28,11 @@ bool cTrim::trim(const char* name, const sBitmap& input)
 
     if (left > right || top > bottom)
     {
-        printf("(WW) Empty sprite: %s\n", name);
+        printf("(WW) Empty sprite: %s\n", path);
     }
     else
     {
-        // printf("Trim %s (%u x %u): %u <-> %u , %u <-> %u\n", name, input.width, input.height, left, right, top, bottom);
+        // printf("Trim %s (%u x %u): %u <-> %u , %u <-> %u\n", path, input.width, input.height, left, right, top, bottom);
 
         auto src = input.data.data() + top * input.width;
 
@@ -134,7 +134,7 @@ cTrimRigthBottom::cTrimRigthBottom(const sConfig& config)
 {
 }
 
-bool cTrimRigthBottom::trim(const char* name, const sBitmap& input)
+bool cTrimRigthBottom::trim(const char* path, const sBitmap& input)
 {
     m_bitmap.clear();
 
@@ -148,7 +148,7 @@ bool cTrimRigthBottom::trim(const char* name, const sBitmap& input)
         return false;
     }
 
-    // printf("Trim %s %u x %u -> %u x %u \n", name, input.width, input.height, width, height);
+    // printf("Trim %s %u x %u -> %u x %u \n", path, input.width, input.height, width, height);
 
     auto src = input.data.data();
 

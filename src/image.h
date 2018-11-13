@@ -17,9 +17,9 @@ class cTrim;
 class cImage final
 {
 public:
-    static bool IsImage(const char* name);
+    static bool IsImage(const char* path);
 
-    bool load(const char* name, cTrim* trim);
+    bool load(const char* path, uint32_t trimPath, cTrim* trim);
 
     const sBitmap& getBitmap() const
     {

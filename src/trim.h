@@ -17,7 +17,7 @@ class cTrim
 public:
     virtual ~cTrim() = default;
 
-    virtual bool trim(const char* name, const sBitmap& input);
+    virtual bool trim(const char* path, const sBitmap& input);
 
     const sBitmap& getBitmap() const
     {
@@ -41,7 +41,7 @@ class cTrimRigthBottom final : public cTrim
 public:
     cTrimRigthBottom(const sConfig& config);
 
-    virtual bool trim(const char* name, const sBitmap& input) override;
+    virtual bool trim(const char* path, const sBitmap& input) override;
 
 private:
     const sConfig& m_config;

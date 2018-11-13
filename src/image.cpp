@@ -15,26 +15,35 @@
 
 #include <cstring>
 
-bool cImage::IsImage(const char* name)
+bool cImage::IsImage(const char* /*path*/)
 {
-    cFile file;
-    if (file.open(name))
-    {
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
-bool cImage::load(const char* name, cTrim* trim)
+bool cImage::load(const char* path, uint32_t trimPath, cTrim* trim)
 {
-    m_name = name;
+    m_name = path;
 
-    m_spriteId = name;
+    m_spriteId = path;
+
+    m_spriteId.erase(0, trimPath);
+
     auto pos = m_spriteId.find_last_of(".");
     if (pos != std::string::npos)
     {
         m_spriteId.erase(pos);
+    }
+
+    if (m_spriteId.substr(0, 2) == "./")
+    {
+        m_spriteId.erase(0, 2);
+    }
+
+    std::replace(m_spriteId.begin(), m_spriteId.end(), '/', '_');
+
+    if (m_spriteId.length() == 0)
+    {
+        ::printf("(EE) Trim value too big for path '%s'\n", path);
     }
 
     //     N=#comp     components
@@ -45,7 +54,7 @@ bool cImage::load(const char* name, cTrim* trim)
     int width;
     int height;
     int bpp;
-    const auto data = stbi_load(name, &width, &height, &bpp, 4);
+    const auto data = stbi_load(path, &width, &height, &bpp, 4);
 
     if (data != nullptr)
     {
@@ -66,7 +75,7 @@ bool cImage::load(const char* name, cTrim* trim)
 
         if (trim != nullptr)
         {
-            if (trim->trim(name, m_bitmap))
+            if (trim->trim(path, m_bitmap))
             {
                 m_bitmap = trim->getBitmap();
             }

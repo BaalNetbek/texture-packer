@@ -25,8 +25,14 @@
 
 void showHelp(const char* name, const sConfig& config);
 
-typedef std::vector<std::string> FilesList;
-void addPath(const std::string& path, FilesList& filesList);
+struct FileInfo
+{
+    uint32_t trimCount;
+    std::string path;
+};
+
+typedef std::vector<FileInfo> FilesList;
+void addPath(uint32_t trimCount, const std::string& path, bool recurse, FilesList& filesList);
 
 sSize calcSize(uint32_t area, const sSize& maxRectSize, const sConfig& config);
 
@@ -34,8 +40,8 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    printf("Texture Packer v1.2.0.\n");
-    printf("Copyright (c) 2017-2018 Andrey A. Ugolnik.\n\n");
+    ::printf("Texture Packer v1.2.1.\n");
+    ::printf("Copyright (c) 2017-2018 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
         showHelp(argv[0], config);
@@ -47,122 +53,148 @@ int main(int argc, char* argv[])
     const char* resPathPrefix = nullptr;
     FilesList filesList;
 
+    uint32_t trimCount = 0;
+    bool recurse = true;
+
     for (int i = 1; i < argc; i++)
     {
         const char* arg = argv[i];
 
-        if (strcmp(arg, "-o") == 0)
+        if (::strcmp(arg, "-o") == 0)
         {
             if (i + 1 < argc)
             {
                 outputAtlasName = argv[++i];
             }
         }
-        else if (strcmp(arg, "-res") == 0)
+        else if (::strcmp(arg, "-res") == 0)
         {
             if (i + 1 < argc)
             {
                 outputResName = argv[++i];
             }
         }
-        else if (strcmp(arg, "-prefix") == 0)
+        else if (::strcmp(arg, "-prefix") == 0)
         {
             if (i + 1 < argc)
             {
                 resPathPrefix = argv[++i];
             }
         }
-        else if (strcmp(arg, "-b") == 0)
+        else if (::strcmp(arg, "-b") == 0)
         {
             if (i + 1 < argc)
             {
-                config.border = static_cast<uint32_t>(atoi(argv[++i]));
+                config.border = static_cast<uint32_t>(::atoi(argv[++i]));
             }
         }
-        else if (strcmp(arg, "-p") == 0)
+        else if (::strcmp(arg, "-p") == 0)
         {
             if (i + 1 < argc)
             {
-                config.padding = static_cast<uint32_t>(atoi(argv[++i]));
+                config.padding = static_cast<uint32_t>(::atoi(argv[++i]));
             }
         }
-        // else if (strcmp(arg, "-max") == 0)
+        // else if (::strcmp(arg, "-max") == 0)
         // {
         // if (i + 1 < argc)
         // {
-        // config.maxTextureSize = static_cast<uint32_t>(atoi(argv[++i]));
+        // config.maxTextureSize = static_cast<uint32_t>(::atoi(argv[++i]));
         // }
         // }
-        else if (strcmp(arg, "-pot") == 0)
+        else if (::strcmp(arg, "-tl") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                trimCount = static_cast<uint32_t>(::atoi(argv[++i]));
+            }
+        }
+        else if (::strcmp(arg, "-pot") == 0)
         {
             config.pot = true;
         }
-        else if (strcmp(arg, "-trim") == 0)
+        else if (::strcmp(arg, "-trim") == 0)
         {
             config.trim = true;
         }
-        else if (strcmp(arg, "-dupes") == 0)
+        else if (::strcmp(arg, "-dupes") == 0)
         {
             config.alowDupes = true;
         }
-        else if (strcmp(arg, "-slow") == 0)
+        else if (::strcmp(arg, "-slow") == 0)
         {
             config.slowMethod = true;
         }
-        else if (strcmp(arg, "-dropext") == 0)
+        else if (::strcmp(arg, "-dropext") == 0)
         {
             config.dropExt = true;
         }
-        else if (strcmp(arg, "-overlay") == 0)
+        else if (::strcmp(arg, "-overlay") == 0)
         {
             config.overlay = true;
         }
+        else if (::strcmp(arg, "-nr") == 0)
+        {
+            recurse = false;
+        }
         else
         {
-            if (cImage::IsImage(arg))
+            auto dir = ::opendir(arg);
+            if (dir != nullptr)
             {
-                filesList.push_back(arg);
-            }
-            else
-            {
+                ::closedir(dir);
+
                 std::string path = arg;
                 if (path[path.length() - 1] == '/')
                 {
-                    path = path.substr(0, path.length() - 1);
+                    path.pop_back();
                 }
-                addPath(path, filesList);
+                addPath(trimCount, path, recurse, filesList);
+
+                recurse = true;
+            }
+            else
+            {
+                if (cImage::IsImage(arg))
+                {
+                    filesList.push_back({ trimCount, arg });
+                }
             }
         }
     }
 
     if (outputAtlasName == nullptr)
     {
-        printf("No output name defined.\n");
+        ::printf("No output name defined.\n");
         return -1;
     }
 
-    printf("Border %u px.\n", config.border);
-    printf("Padding %u px.\n", config.padding);
-    printf("Overlay: %s.\n", isEnabled(config.overlay));
-    printf("Allow dupes: %s.\n", isEnabled(config.alowDupes));
-    printf("Trim sprites: %s.\n", isEnabled(config.trim));
-    printf("Power of Two: %s.\n", isEnabled(config.pot));
-    printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
-    printf("Drop extension: %s.\n", isEnabled(config.dropExt));
-    // printf("Max atlas size %u px.\n", config.maxTextureSize);
+    ::printf("Border %u px.\n", config.border);
+    ::printf("Padding %u px.\n", config.padding);
+    ::printf("Overlay: %s.\n", isEnabled(config.overlay));
+    ::printf("Allow dupes: %s.\n", isEnabled(config.alowDupes));
+    ::printf("Trim sprites: %s.\n", isEnabled(config.trim));
+    ::printf("Power of Two: %s.\n", isEnabled(config.pot));
+    ::printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
+    ::printf("Drop extension: %s.\n", isEnabled(config.dropExt));
+    // ::printf("Max atlas size %u px.\n", config.maxTextureSize);
     if (resPathPrefix != nullptr)
     {
-        printf("Resource path prefix: %s.\n", resPathPrefix);
+        ::printf("Resource path prefix: %s.\n", resPathPrefix);
     }
-    printf("\n");
+    ::printf("\n");
 
     const auto totalFiles = (uint32_t)filesList.size();
 
     // sort and remove dupes
     if (config.alowDupes == false)
     {
-        std::sort(filesList.begin(), filesList.end());
-        auto it = std::unique(filesList.begin(), filesList.end());
+        std::sort(filesList.begin(), filesList.end(), [](const FileInfo& a, const FileInfo& b) {
+            return a.path < b.path;
+        });
+        auto it = std::unique(filesList.begin(), filesList.end(), [](const FileInfo& a, const FileInfo& b) {
+            return a.path == b.path;
+        });
         filesList.resize(std::distance(filesList.begin(), it));
     }
 
@@ -173,10 +205,10 @@ int main(int argc, char* argv[])
     auto startTime = getCurrentTime();
     std::unique_ptr<cTrim> trim(config.trim ? new cTrim() : nullptr);
     std::vector<cImage*> imagesList;
-    for (const auto& path : filesList)
+    for (const auto& f : filesList)
     {
         std::unique_ptr<cImage> image(new cImage());
-        if (image->load(path.c_str(), trim.get()) == true)
+        if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
         {
             auto& bmp = image->getBitmap();
             maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.width + config.padding);
@@ -187,24 +219,23 @@ int main(int argc, char* argv[])
         }
     }
     auto sec = (getCurrentTime() - startTime) * 0.000001f;
-    printf("Loaded %u (%u) images in %g sec.\n", (uint32_t)imagesList.size(), totalFiles, sec);
+    ::printf("Loaded %u (%u) images in %g sec.\n", (uint32_t)imagesList.size(), totalFiles, sec);
 
     if (imagesList.size() > 0)
     {
         cPacker packer(imagesList.size(), config);
 
-        std::sort(imagesList.begin(), imagesList.end(), [&packer](const cImage * a, const cImage * b)
-        {
+        std::sort(imagesList.begin(), imagesList.end(), [&packer](const cImage* a, const cImage* b) {
             return packer.compare(a, b);
         });
 
         auto texSize = calcSize(area, maxRectSize, config);
-        // printf("Start from %u x %u.\n", texSize.width, texSize.height);
+        // ::printf("Start from %u x %u.\n", texSize.width, texSize.height);
 
         startTime = getCurrentTime();
 
-        printf("Packing ");
-        fflush(nullptr);
+        ::printf("Packing ");
+        ::fflush(nullptr);
         bool done = true;
         do
         {
@@ -227,9 +258,9 @@ int main(int argc, char* argv[])
 
                     texSize = calcSize(area, maxRectSize, config);
 
-                    // printf(" new texture size %u x %u.\n", texSize.width, texSize.height);
-                    printf(".");
-                    fflush(nullptr);
+                    // ::printf(" new texture size %u x %u.\n", texSize.width, texSize.height);
+                    ::printf(".");
+                    ::fflush(nullptr);
                     break;
                 }
             }
@@ -237,8 +268,8 @@ int main(int argc, char* argv[])
             if (done)
             {
                 auto sec = (getCurrentTime() - startTime) * 0.000001f;
-                printf(" in %g sec.\n", sec);
-                fflush(nullptr);
+                ::printf(" in %g sec.\n", sec);
+                ::fflush(nullptr);
 
                 packer.buildAtlas();
 
@@ -258,11 +289,10 @@ int main(int argc, char* argv[])
                         packer.generateResFile(outputResName, atlasName.c_str());
                     }
 
-                    printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, atlas.width, atlas.height, formatNum(atlas.width * atlas.height));
+                    ::printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, atlas.width, atlas.height, formatNum(atlas.width * atlas.height));
                 }
             }
-        }
-        while (done == false);// && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);
+        } while (done == false); // && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);
 
         for (auto img : imagesList)
         {
@@ -275,22 +305,24 @@ int main(int argc, char* argv[])
 
 void showHelp(const char* name, const sConfig& config)
 {
-    printf("Usage:\n");
-    const char* p = strrchr(name, '/');
-    printf("  %s INPUT_IMAGE [INPUT_IMAGE] -o ATLAS\n\n", p ? p + 1 : name);
-    printf("  INPUT_IMAGE        input image name or directory separated by space\n");
-    printf("  -o ATLAS           output atlas name (default PNG)\n");
-    printf("  -res DESC_TEXTURE  output atlas description as XML\n");
-    printf("  -prefix STRING     add prefix to texture path\n");
-    printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
-    printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
-    printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));
-    printf("  -dupes             allow dupes (default %s)\n", isEnabled(config.alowDupes));
-    printf("  -slow              use slow method instead kd-tree (default %s)\n", isEnabled(config.slowMethod));
-    printf("  -b size            add border around sprites (default %u px)\n", config.border);
-    printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
-    printf("  -dropext           drop file extension from sprite id (default %s)\n", isEnabled(config.dropExt));
-    // printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
+    ::printf("Usage:\n");
+    auto p = ::strrchr(name, '/');
+    ::printf("  %s INPUT_IMAGE [INPUT_IMAGE] -o ATLAS\n\n", p ? p + 1 : name);
+    ::printf("  INPUT_IMAGE        input image name or directory separated by space\n");
+    ::printf("  -o ATLAS           output atlas name (default PNG)\n");
+    ::printf("  -res DESC_TEXTURE  output atlas description as XML\n");
+    ::printf("  -prefix STRING     add prefix to texture path\n");
+    ::printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
+    ::printf("  -nr                don't recurse in next directory\n");
+    ::printf("  -tl count          trim left sprite's id by count (default 0)\n");
+    ::printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
+    ::printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));
+    ::printf("  -dupes             allow dupes (default %s)\n", isEnabled(config.alowDupes));
+    ::printf("  -slow              use slow method instead kd-tree (default %s)\n", isEnabled(config.slowMethod));
+    ::printf("  -b size            add border around sprites (default %u px)\n", config.border);
+    ::printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
+    ::printf("  -dropext           drop file extension from sprite id (default %s)\n", isEnabled(config.dropExt));
+    // ::printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
 }
 
 int DirectoryFilter(const dirent* p)
@@ -300,10 +332,10 @@ int DirectoryFilter(const dirent* p)
     return DOT_OR_DOTDOT(p->d_name) ? 0 : 1;
 }
 
-void addPath(const std::string& root, FilesList& filesList)
+void addPath(uint32_t trimCount, const std::string& root, bool recurse, FilesList& filesList)
 {
     dirent** namelist;
-    int n = scandir(root.c_str(), &namelist, DirectoryFilter, alphasort);
+    int n = ::scandir(root.c_str(), &namelist, DirectoryFilter, alphasort);
     if (n >= 0)
     {
         while (n--)
@@ -316,19 +348,19 @@ void addPath(const std::string& root, FilesList& filesList)
             auto dir = opendir(path.c_str());
             if (dir != nullptr)
             {
-                closedir(dir);
-                // if (m_recursive == true)
+                ::closedir(dir);
+                if (recurse)
                 {
-                    addPath(path, filesList);
+                    addPath(trimCount, path, recurse, filesList);
                 }
             }
             else if (cImage::IsImage(path.c_str()))
             {
-                filesList.push_back(path);
+                filesList.push_back({ trimCount, path });
             }
-            free(namelist[n]);
+            ::free(namelist[n]);
         }
-        free(namelist);
+        ::free(namelist);
     }
 }
 
