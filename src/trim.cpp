@@ -74,7 +74,7 @@ uint32_t cTrim::findRigth(const sBitmap& input) const
 {
     for (uint32_t x = 0; x < input.width; x++)
     {
-        uint32_t offset = input.width - x - 1;
+        uint32_t offset = input.width - x;
         auto src = input.data.data() + offset;
         for (uint32_t y = 0; y < input.height; y++)
         {
