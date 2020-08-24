@@ -111,7 +111,7 @@ uint32_t cTrim::findBottom(const sBitmap& input) const
 {
     for (uint32_t y = 0; y < input.height; y++)
     {
-        uint32_t offset = input.height - y - 1;
+        uint32_t offset = input.height - y;
         auto src = input.data.data() + offset * input.width;
         for (uint32_t x = 0; x < input.width; x++)
         {
