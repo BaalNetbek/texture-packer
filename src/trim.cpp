@@ -74,13 +74,13 @@ uint32_t cTrim::findRigth(const sBitmap& input) const
 {
     for (uint32_t x = 0; x < input.width; x++)
     {
-        uint32_t offset = input.width - x;
+        uint32_t offset = input.width - x - 1;
         auto src = input.data.data() + offset;
         for (uint32_t y = 0; y < input.height; y++)
         {
             if (src->a != 0)
             {
-                return offset;
+                return offset + 1;
             }
             src += input.width;
         }
@@ -111,13 +111,13 @@ uint32_t cTrim::findBottom(const sBitmap& input) const
 {
     for (uint32_t y = 0; y < input.height; y++)
     {
-        uint32_t offset = input.height - y;
+        uint32_t offset = input.height - y - 1;
         auto src = input.data.data() + offset * input.width;
         for (uint32_t x = 0; x < input.width; x++)
         {
             if (src->a != 0)
             {
-                return offset;
+                return offset + 1;
             }
             src++;
         }
@@ -134,7 +134,7 @@ cTrimRigthBottom::cTrimRigthBottom(const sConfig& config)
 {
 }
 
-bool cTrimRigthBottom::trim(const char* path, const sBitmap& input)
+bool cTrimRigthBottom::trim(const char* /*path*/, const sBitmap& input)
 {
     m_bitmap.clear();
 
