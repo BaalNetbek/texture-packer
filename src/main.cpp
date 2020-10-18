@@ -6,10 +6,10 @@
 *
 \**********************************************/
 
+#include "atlas/AtlasPacker.h"
 #include "config.h"
 #include "image.h"
 #include "imagesaver.h"
-#include "packer.h"
 #include "trim.h"
 #include "types/size.h"
 #include "utils.h"
@@ -205,28 +205,39 @@ int main(int argc, char* argv[])
     auto startTime = getCurrentTime();
     std::unique_ptr<cTrim> trim(config.trim ? new cTrim() : nullptr);
     std::vector<cImage*> imagesList;
+    imagesList.reserve(filesList.size());
+
     for (const auto& f : filesList)
     {
         std::unique_ptr<cImage> image(new cImage());
         if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
         {
+            // printf("(II) path: %s loaded.\n", f.path.c_str());
             auto& bmp = image->getBitmap();
-            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.width + config.padding);
-            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.height + config.padding);
-            area += (bmp.width + config.padding) * (bmp.height + config.padding);
+            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.getWidth() + config.padding);
+            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.getHeight() + config.padding);
+            area += (bmp.getHeight() + config.padding) * (bmp.getHeight() + config.padding);
 
-            imagesList.push_back(image.release());
+            auto ptr = image.release();
+            // printf("(II) ptr: 0x%p , path: %s loaded\n", static_cast<const void*>(ptr), f.path.c_str());
+            imagesList.push_back(ptr);
+        }
+        else
+        {
+            printf("(EE) path: %s not loaded.\n", f.path.c_str());
         }
     }
+
     auto sec = (getCurrentTime() - startTime) * 0.000001f;
     ::printf("Loaded %u (%u) images in %g sec.\n", (uint32_t)imagesList.size(), totalFiles, sec);
 
     if (imagesList.size() > 0)
     {
-        cPacker packer(imagesList.size(), config);
+        std::unique_ptr<AtlasPacker> packer(AtlasPacker::create(imagesList.size(), config));
 
-        std::sort(imagesList.begin(), imagesList.end(), [&packer](const cImage* a, const cImage* b) {
-            return packer.compare(a, b);
+        int i = 0;
+        std::stable_sort(imagesList.begin(), imagesList.end(), [&packer,&i](const cImage* a, const cImage* b) -> bool {
+            return packer->compare(a, b);
         });
 
         auto texSize = calcSize(area, maxRectSize, config);
@@ -240,19 +251,19 @@ int main(int argc, char* argv[])
         do
         {
             done = true;
-            packer.setSize(texSize);
+            packer->setSize(texSize);
             for (size_t i = 0, size = imagesList.size(); i < size; i++)
             {
                 const auto& img = imagesList[i];
 
-                if (packer.add(img) == false)
+                if (packer->add(img) == false)
                 {
                     done = false;
 
                     for (; i < size; i++)
                     {
                         const auto& bmp = imagesList[i]->getBitmap();
-                        auto s = (bmp.width + config.padding) * (bmp.height + config.padding);
+                        auto s = (bmp.getWidth() + config.padding) * (bmp.getHeight() + config.padding);
                         area += s;
                     }
 
@@ -271,11 +282,11 @@ int main(int argc, char* argv[])
                 ::printf(" in %g sec.\n", sec);
                 ::fflush(nullptr);
 
-                packer.buildAtlas();
+                packer->buildAtlas();
 
-                auto& atlas = packer.getBitmap();
+                auto& atlas = packer->getBitmap();
                 // write texture
-                cImageSaver saver(packer.getBitmap(), outputAtlasName);
+                cImageSaver saver(packer->getBitmap(), outputAtlasName);
                 if (saver.save() == true)
                 {
                     outputAtlasName = saver.getAtlasName();
@@ -286,10 +297,14 @@ int main(int argc, char* argv[])
                         std::string atlasName = resPathPrefix != nullptr ? resPathPrefix : "";
                         atlasName += outputAtlasName;
 
-                        packer.generateResFile(outputResName, atlasName.c_str());
+                        packer->generateResFile(outputResName, atlasName.c_str());
                     }
 
-                    ::printf("Atlas '%s' %u x %u (%s px) has been created.\n", outputAtlasName, atlas.width, atlas.height, formatNum(atlas.width * atlas.height));
+                    ::printf("Atlas '%s' %u x %u (%s px) has been created.\n",
+                             outputAtlasName,
+                             atlas.getWidth(),
+                             atlas.getHeight(),
+                             formatNum(atlas.getWidth() * atlas.getHeight()));
                 }
             }
         } while (done == false); // && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);

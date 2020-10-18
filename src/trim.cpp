@@ -12,7 +12,7 @@
 
 #include <cstdio>
 
-bool cTrim::trim(const char* path, const sBitmap& input)
+bool cTrim::trim(const char* path, const cBitmap& input)
 {
     m_bitmap.clear();
 
@@ -21,7 +21,7 @@ bool cTrim::trim(const char* path, const sBitmap& input)
     auto top = findTop(input);
     auto bottom = findBottom(input);
 
-    if (left == 0 && right == input.width && top == 0 && bottom == input.height)
+    if (left == 0 && right == input.getWidth() && top == 0 && bottom == input.getHeight())
     {
         return false;
     }
@@ -32,12 +32,12 @@ bool cTrim::trim(const char* path, const sBitmap& input)
     }
     else
     {
-        // printf("Trim %s (%u x %u): %u <-> %u , %u <-> %u\n", path, input.width, input.height, left, right, top, bottom);
+        // printf("Trim %s (%u x %u): %u <-> %u , %u <-> %u\n", path, input.getWidth(), input.getHeight(), left, right, top, bottom);
 
-        auto src = input.data.data() + top * input.width;
+        auto src = input.getData() + top * input.getWidth();
 
-        m_bitmap.setSize(right - left + 1, bottom - top + 1);
-        auto dst = m_bitmap.data.data();
+        m_bitmap.createBitmap(right - left + 1, bottom - top + 1);
+        auto dst = m_bitmap.getData();
 
         for (uint32_t y = top; y <= bottom; y++)
         {
@@ -45,56 +45,56 @@ bool cTrim::trim(const char* path, const sBitmap& input)
             {
                 *dst++ = src[x];
             }
-            src += input.width;
+            src += input.getWidth();
         }
     }
 
     return true;
 }
 
-uint32_t cTrim::findLeft(const sBitmap& input) const
+uint32_t cTrim::findLeft(const cBitmap& input) const
 {
-    for (uint32_t x = 0; x < input.width; x++)
+    for (uint32_t x = 0; x < input.getWidth(); x++)
     {
-        auto src = input.data.data() + x;
-        for (uint32_t y = 0; y < input.height; y++)
+        auto src = input.getData() + x;
+        for (uint32_t y = 0; y < input.getHeight(); y++)
         {
             if (src->a != 0)
             {
                 return x;
             }
-            src += input.width;
+            src += input.getWidth();
         }
     }
 
-    return input.width;
+    return input.getWidth();
 }
 
-uint32_t cTrim::findRigth(const sBitmap& input) const
+uint32_t cTrim::findRigth(const cBitmap& input) const
 {
-    for (uint32_t x = 0; x < input.width; x++)
+    for (uint32_t x = 0; x < input.getWidth(); x++)
     {
-        uint32_t offset = input.width - x - 1;
-        auto src = input.data.data() + offset;
-        for (uint32_t y = 0; y < input.height; y++)
+        uint32_t offset = input.getWidth() - x - 1;
+        auto src = input.getData() + offset;
+        for (uint32_t y = 0; y < input.getHeight(); y++)
         {
             if (src->a != 0)
             {
                 return offset + 1;
             }
-            src += input.width;
+            src += input.getWidth();
         }
     }
 
     return 0;
 }
 
-uint32_t cTrim::findTop(const sBitmap& input) const
+uint32_t cTrim::findTop(const cBitmap& input) const
 {
-    for (uint32_t y = 0; y < input.height; y++)
+    for (uint32_t y = 0; y < input.getHeight(); y++)
     {
-        auto src = input.data.data() + y * input.width;
-        for (uint32_t x = 0; x < input.width; x++)
+        auto src = input.getData() + y * input.getWidth();
+        for (uint32_t x = 0; x < input.getWidth(); x++)
         {
             if (src->a != 0)
             {
@@ -104,16 +104,16 @@ uint32_t cTrim::findTop(const sBitmap& input) const
         }
     }
 
-    return input.height;
+    return input.getHeight();
 }
 
-uint32_t cTrim::findBottom(const sBitmap& input) const
+uint32_t cTrim::findBottom(const cBitmap& input) const
 {
-    for (uint32_t y = 0; y < input.height; y++)
+    for (uint32_t y = 0; y < input.getHeight(); y++)
     {
-        uint32_t offset = input.height - y - 1;
-        auto src = input.data.data() + offset * input.width;
-        for (uint32_t x = 0; x < input.width; x++)
+        uint32_t offset = input.getHeight() - y - 1;
+        auto src = input.getData() + offset * input.getWidth();
+        for (uint32_t x = 0; x < input.getWidth(); x++)
         {
             if (src->a != 0)
             {
@@ -134,7 +134,7 @@ cTrimRigthBottom::cTrimRigthBottom(const sConfig& config)
 {
 }
 
-bool cTrimRigthBottom::trim(const char* /*path*/, const sBitmap& input)
+bool cTrimRigthBottom::trim(const char* /*path*/, const cBitmap& input)
 {
     m_bitmap.clear();
 
@@ -143,17 +143,17 @@ bool cTrimRigthBottom::trim(const char* /*path*/, const sBitmap& input)
     const auto width = fixSize(findRigth(input) + border, m_config.pot);
     const auto height = fixSize(findBottom(input) + border, m_config.pot);
 
-    if (width == input.width && height == input.height)
+    if (width == input.getWidth() && height == input.getHeight())
     {
         return false;
     }
 
-    // printf("Trim %s %u x %u -> %u x %u \n", path, input.width, input.height, width, height);
+    // printf("Trim %s %u x %u -> %u x %u \n", path, input.getWidth(), input.getHeight(), width, height);
 
-    auto src = input.data.data();
+    auto src = input.getData();
 
-    m_bitmap.setSize(width, height);
-    auto dst = m_bitmap.data.data();
+    m_bitmap.createBitmap(width, height);
+    auto dst = m_bitmap.getData();
 
     for (uint32_t y = 0; y < height; y++)
     {
@@ -161,7 +161,7 @@ bool cTrimRigthBottom::trim(const char* /*path*/, const sBitmap& input)
         {
             *dst++ = src[x];
         }
-        src += input.width;
+        src += input.getWidth();
     }
 
     return true;

@@ -19,9 +19,12 @@ class cImage final
 public:
     static bool IsImage(const char* path);
 
+public:
+    ~cImage();
+
     bool load(const char* path, uint32_t trimPath, cTrim* trim);
 
-    const sBitmap& getBitmap() const
+    const cBitmap& getBitmap() const
     {
         return m_bitmap;
     }
@@ -39,5 +42,7 @@ public:
 private:
     std::string m_name;
     std::string m_spriteId;
-    sBitmap m_bitmap;
+
+    uint8_t* m_data = nullptr;
+    cBitmap m_bitmap;
 };

@@ -16,6 +16,14 @@
 #include <algorithm>
 #include <cstring>
 
+cImage::~cImage()
+{
+    if (m_data != nullptr)
+    {
+        stbi_image_free(m_data);
+    }
+}
+
 bool cImage::IsImage(const char* /*path*/)
 {
     return true;
@@ -55,35 +63,17 @@ bool cImage::load(const char* path, uint32_t trimPath, cTrim* trim)
     int width;
     int height;
     int bpp;
-    const auto data = stbi_load(path, &width, &height, &bpp, 4);
+    m_data = stbi_load(path, &width, &height, &bpp, 4);
 
-    if (data != nullptr)
+    m_bitmap.setBitmap(width, height, m_data);
+
+    if (m_data != nullptr && trim != nullptr)
     {
-        m_bitmap.setSize(width, height);
-        auto bitmap = m_bitmap.data.data();
-        auto in = data;
-
-        for (int y = 0; y < height; y++)
+        if (trim->trim(path, m_bitmap))
         {
-            for (int x = 0; x < width; x++)
-            {
-                *bitmap = { in[0], in[1], in[2], in[3] };
-                in += 4;
-                bitmap++;
-            }
+            m_bitmap = std::move(trim->getBitmap());
         }
-        stbi_image_free(data);
-
-        if (trim != nullptr)
-        {
-            if (trim->trim(path, m_bitmap))
-            {
-                m_bitmap = trim->getBitmap();
-            }
-        }
-
-        return true;
     }
 
-    return false;
+    return m_data != nullptr;
 }
