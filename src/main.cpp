@@ -212,19 +212,16 @@ int main(int argc, char* argv[])
         std::unique_ptr<cImage> image(new cImage());
         if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
         {
-            // printf("(II) path: %s loaded.\n", f.path.c_str());
             auto& bmp = image->getBitmap();
             maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.getWidth() + config.padding);
             maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.getHeight() + config.padding);
             area += (bmp.getHeight() + config.padding) * (bmp.getHeight() + config.padding);
 
-            auto ptr = image.release();
-            // printf("(II) ptr: 0x%p , path: %s loaded\n", static_cast<const void*>(ptr), f.path.c_str());
-            imagesList.push_back(ptr);
+            imagesList.push_back(image.release());
         }
         else
         {
-            printf("(EE) path: %s not loaded.\n", f.path.c_str());
+            ::printf("(WW) Image '%s' not loaded.\n", f.path.c_str());
         }
     }
 
