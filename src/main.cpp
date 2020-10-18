@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
     {
         cPacker packer(imagesList.size(), config);
 
-        std::sort(imagesList.begin(), imagesList.end(), [&packer](const cImage* a, const cImage* b) {
+        std::stable_sort(imagesList.begin(), imagesList.end(), [&packer](const cImage* a, const cImage* b) {
             return packer.compare(a, b);
         });
 
