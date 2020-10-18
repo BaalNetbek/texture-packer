@@ -7,13 +7,13 @@
 \**********************************************/
 
 #include "AtlasPacker.h"
-#include "../atlas/KDTreePacker.h"
-#include "../atlas/SimplePacker.h"
-#include "../config.h"
-#include "../file.h"
-#include "../image.h"
-#include "../trim.h"
-#include "../types/rect.h"
+#include "KDTreePacker.h"
+#include "SimplePacker.h"
+#include "config.h"
+#include "file.h"
+#include "image.h"
+#include "trim.h"
+#include "types/rect.h"
 #include <algorithm>
 #include <cmath>
 #include <sstream>
@@ -54,14 +54,15 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
     const auto offy = rc.top;
     const auto pitch = m_atlas.getWidth();
 
-    auto src = bmp.getData();
+    auto srcData = bmp.getData();
+    auto dstData = m_atlas.getData();
 
     for (uint32_t y = 0; y < height; y++)
     {
-        auto dst = m_atlas.getData() + (y + offy) * pitch + offx;
+        auto dst = dstData + (y + offy) * pitch + offx;
         for (uint32_t x = 0; x < width; x++)
         {
-            *dst++ = *src++;
+            *dst++ = *srcData++;
         }
     }
 
@@ -75,7 +76,7 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
 
         for (uint32_t y = 0; y < height; y++)
         {
-            auto dst = m_atlas.getData() + (y + offy) * pitch + offx;
+            auto dst = dstData + (y + offy) * pitch + offx;
             for (uint32_t x = 0; x < width; x++)
             {
                 const float dR = dst->r * inv;
@@ -104,9 +105,9 @@ void AtlasPacker::buildAtlas()
     makeAtlas(m_config.overlay);
 
     cTrimRigthBottom trim(m_config);
-    if (trim.trim("atlas", getBitmap()))
+    if (trim.trim("atlas", m_atlas))
     {
-        getBitmap() = std::move(trim.getBitmap());
+        m_atlas = std::move(trim.getBitmap());
     }
 }
 
@@ -132,7 +133,7 @@ bool AtlasPacker::generateResFile(const char* name, const char* atlasName)
 
         out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
-        auto& bitmap = getBitmap();
+        auto& bitmap = m_atlas;
         out << "<atlas width=\"" << bitmap.getWidth() << "\" height=\"" << bitmap.getHeight() << "\">\n";
 
         for (uint32_t i = 0; i < size; i++)

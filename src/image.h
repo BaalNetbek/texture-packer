@@ -22,6 +22,8 @@ public:
 public:
     ~cImage();
 
+    void clear();
+
     bool load(const char* path, uint32_t trimPath, cTrim* trim);
 
     const cBitmap& getBitmap() const
@@ -43,6 +45,6 @@ private:
     std::string m_name;
     std::string m_spriteId;
 
-    uint8_t* m_data = nullptr;
+    uint8_t* m_stbImageData = nullptr;
     cBitmap m_bitmap;
 };

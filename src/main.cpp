@@ -40,8 +40,8 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    ::printf("Texture Packer v1.2.1.\n");
-    ::printf("Copyright (c) 2017-2018 Andrey A. Ugolnik.\n\n");
+    ::printf("Texture Packer v1.3.0.\n");
+    ::printf("Copyright (c) 2017-2020 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
         showHelp(argv[0], config);

@@ -7,10 +7,10 @@
 \**********************************************/
 
 #include "KDTreePacker.h"
-#include "../config.h"
-#include "../image.h"
-#include "../types/rect.h"
-#include "../types/size.h"
+#include "config.h"
+#include "image.h"
+#include "types/rect.h"
+#include "types/size.h"
 
 class cKDNode final
 {

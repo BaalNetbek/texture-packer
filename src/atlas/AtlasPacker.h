@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../types/bitmap.h"
+#include "types/bitmap.h"
 
 class cImage;
 struct sConfig;

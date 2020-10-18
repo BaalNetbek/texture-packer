@@ -7,9 +7,9 @@
 \**********************************************/
 
 #include "SimplePacker.h"
-#include "../config.h"
-#include "../image.h"
-#include "../types/size.h"
+#include "config.h"
+#include "image.h"
+#include "types/size.h"
 
 SimplePacker::SimplePacker(uint32_t count, const sConfig& config)
     : AtlasPacker(config)

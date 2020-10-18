@@ -8,11 +8,11 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <string.h>
-#include <vector>
 
-class cBitmap
+class cBitmap final
 {
 public:
     ~cBitmap()
@@ -66,7 +66,7 @@ public:
         return *this;
     }
 
-    template<typename T>
+    template <typename T>
     void moveAndSet(T& me, T& other, T value)
     {
         me = other;
@@ -75,7 +75,7 @@ public:
 
     cBitmap& operator=(cBitmap&& other) noexcept
     {
-        if(this != &other)
+        if (this != &other)
         {
             clear();
 
