@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 if( CMAKE_BUILD_TYPE STREQUAL "Release" )
     message(STATUS "=== RELEASE MODE ===")
     add_definitions( "-DNDEBUG" )
-    add_definitions( "-Wall -O2" )
+    add_definitions( "-Wall -O3" )
 else()
     message(STATUS "=== DEBUG MODE ===")
     add_definitions( "-DDEBUG" )
@@ -20,8 +20,9 @@ endif()
 # additional compiler flags
 set( CMAKE_CXX_FLAGS "-std=c++11" )
 
-# include_directories(
-    # )
+include_directories(
+    ${PROJECT_SOURCE_DIR}/src
+    )
 
 # link_directories(
     # )

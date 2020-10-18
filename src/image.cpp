@@ -21,8 +21,26 @@ bool cImage::IsImage(const char* /*path*/)
     return true;
 }
 
+cImage::~cImage()
+{
+    clear();
+}
+
+void cImage::clear()
+{
+    if (m_stbImageData != nullptr)
+    {
+        stbi_image_free(m_stbImageData);
+        m_stbImageData = nullptr;
+    }
+
+    m_bitmap.clear();
+}
+
 bool cImage::load(const char* path, uint32_t trimPath, cTrim* trim)
 {
+    clear();
+
     m_name = path;
 
     m_spriteId = path;
@@ -55,35 +73,17 @@ bool cImage::load(const char* path, uint32_t trimPath, cTrim* trim)
     int width;
     int height;
     int bpp;
-    const auto data = stbi_load(path, &width, &height, &bpp, 4);
+    m_stbImageData = stbi_load(path, &width, &height, &bpp, 4);
 
-    if (data != nullptr)
+    m_bitmap.setBitmap(width, height, m_stbImageData);
+
+    if (m_stbImageData != nullptr && trim != nullptr)
     {
-        m_bitmap.setSize(width, height);
-        auto bitmap = m_bitmap.data.data();
-        auto in = data;
-
-        for (int y = 0; y < height; y++)
+        if (trim->trim(path, m_bitmap))
         {
-            for (int x = 0; x < width; x++)
-            {
-                *bitmap = { in[0], in[1], in[2], in[3] };
-                in += 4;
-                bitmap++;
-            }
+            m_bitmap = std::move(trim->getBitmap());
         }
-        stbi_image_free(data);
-
-        if (trim != nullptr)
-        {
-            if (trim->trim(path, m_bitmap))
-            {
-                m_bitmap = trim->getBitmap();
-            }
-        }
-
-        return true;
     }
 
-    return false;
+    return m_stbImageData != nullptr;
 }

@@ -7,11 +7,12 @@
 \**********************************************/
 
 #include "SimplePacker.h"
-#include "../image.h"
-#include "../types/size.h"
+#include "config.h"
+#include "image.h"
+#include "types/size.h"
 
-SimplePacker::SimplePacker(uint32_t count, uint32_t padding, uint32_t border)
-    : AtlasPacker(padding, border)
+SimplePacker::SimplePacker(uint32_t count, const sConfig& config)
+    : AtlasPacker(config)
 {
     m_images.reserve(count);
 }
@@ -24,31 +25,31 @@ bool SimplePacker::compare(const cImage* a, const cImage* b) const
 {
     auto& bmpa = a->getBitmap();
     auto& bmpb = b->getBitmap();
-    return (bmpa.width * bmpa.height > bmpb.width * bmpb.height)
-        && (bmpa.width + bmpa.height > bmpb.width + bmpb.height);
+    return (bmpa.getWidth() * bmpa.getHeight() > bmpb.getWidth() * bmpb.getHeight())
+        && (bmpa.getWidth() + bmpa.getHeight() > bmpb.getWidth() + bmpb.getHeight());
 }
 
 bool SimplePacker::add(const cImage* image)
 {
     const auto& bmp = image->getBitmap();
 
-    const auto border = m_border;
-    const auto padding = m_padding;
+    const auto border = m_config.border;
+    const auto padding = m_config.padding;
 
-    const auto width = m_atlas.width - bmp.width - border;
-    const auto height = m_atlas.height - bmp.height - border;
+    const auto width = m_atlas.getWidth() - bmp.getWidth() - border;
+    const auto height = m_atlas.getHeight() - bmp.getHeight() - border;
 
     sRect imgRc;
 
     for (uint32_t y = border; y < height;)
     {
         imgRc.top = y;
-        imgRc.bottom = y + bmp.height;
+        imgRc.bottom = y + bmp.getHeight();
 
         for (uint32_t x = border; x < width;)
         {
             imgRc.left = x;
-            imgRc.right = x + bmp.width;
+            imgRc.right = x + bmp.getWidth();
 
             const auto rc = checkRegion(imgRc);
             if (rc == nullptr)
@@ -69,7 +70,7 @@ bool SimplePacker::add(const cImage* image)
 
 const sRect* SimplePacker::checkRegion(const sRect& region) const
 {
-    const auto padding = m_padding;
+    const auto padding = m_config.padding;
     for (const auto& img : m_images)
     {
         const auto& rc = img.rc;
@@ -88,7 +89,7 @@ const sRect* SimplePacker::checkRegion(const sRect& region) const
 void SimplePacker::setSize(const sSize& size)
 {
     m_images.clear();
-    m_atlas.setSize(size.width, size.height);
+    m_atlas.createBitmap(size.width, size.height);
 }
 
 void SimplePacker::makeAtlas(bool overlay)

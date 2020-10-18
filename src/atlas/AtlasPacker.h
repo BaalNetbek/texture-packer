@@ -8,16 +8,20 @@
 
 #pragma once
 
-#include "../types/bitmap.h"
+#include "types/bitmap.h"
 
 class cImage;
-struct sSize;
+struct sConfig;
 struct sRect;
+struct sSize;
 
 class AtlasPacker
 {
 public:
-    AtlasPacker(uint32_t padding, uint32_t border);
+    static AtlasPacker* create(size_t count, const sConfig& config);
+
+public:
+    AtlasPacker(const sConfig& config);
     virtual ~AtlasPacker();
 
     virtual bool compare(const cImage* a, const cImage* b) const = 0;
@@ -26,12 +30,12 @@ public:
     virtual bool add(const cImage* image) = 0;
     virtual void makeAtlas(bool overlay) = 0;
 
-    const sBitmap& getBitmap() const
+    const cBitmap& getBitmap() const
     {
         return m_atlas;
     }
 
-    sBitmap& getBitmap()
+    cBitmap& getBitmap()
     {
         return m_atlas;
     }
@@ -40,11 +44,16 @@ public:
     virtual const cImage* getImageByIndex(uint32_t idx) const = 0;
     virtual const sRect& getRectByIndex(uint32_t idx) const = 0;
 
+    void buildAtlas();
+
+    bool generateResFile(const char* name, const char* atlasName);
+
 protected:
     void copyBitmap(const sRect& rc, const cImage* image, bool overlay);
 
 protected:
-    uint32_t m_border;
-    uint32_t m_padding;
-    sBitmap m_atlas;
+    const sConfig& m_config;
+
+protected:
+    cBitmap m_atlas;
 };

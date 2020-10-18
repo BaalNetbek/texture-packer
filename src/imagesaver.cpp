@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cstring>
 
-cImageSaver::cImageSaver(const sBitmap& bitmap, const char* filename)
+cImageSaver::cImageSaver(const cBitmap& bitmap, const char* filename)
     : m_bitmap(bitmap)
     , m_filename(filename)
 {
@@ -68,10 +68,10 @@ cImageSaver::Type cImageSaver::getWriter(const char* filename) const
 
 bool cImageSaver::save() const
 {
-    const int w = m_bitmap.width;
-    const int h = m_bitmap.height;
+    const int w = m_bitmap.getWidth();
+    const int h = m_bitmap.getHeight();
     const int stride = w * 4;
-    const auto data = m_bitmap.data.data();
+    const auto data = m_bitmap.getData();
 
     auto filename = m_filename.c_str();
 

@@ -9,13 +9,14 @@
 #pragma once
 
 #include "AtlasPacker.h"
+#include <vector>
 
 class cKDNode;
 
 class KDTreePacker final : public AtlasPacker
 {
 public:
-    KDTreePacker(uint32_t padding, uint32_t border);
+    KDTreePacker(const sConfig& config);
     ~KDTreePacker();
 
     bool compare(const cImage* a, const cImage* b) const override;
@@ -29,7 +30,7 @@ public:
     const sRect& getRectByIndex(uint32_t idx) const override;
 
 private:
-    cKDNode* m_root;
+    cKDNode* m_root = nullptr;
 
     struct sPiece
     {

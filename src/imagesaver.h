@@ -10,12 +10,12 @@
 
 #include <string>
 
-struct sBitmap;
+struct cBitmap;
 
 class cImageSaver final
 {
 public:
-    cImageSaver(const sBitmap& bitmap, const char* filename);
+    cImageSaver(const cBitmap& bitmap, const char* filename);
     ~cImageSaver();
 
     const char* getAtlasName() const
@@ -37,7 +37,7 @@ private:
     Type getWriter(const char* filename) const;
 
 private:
-    const sBitmap& m_bitmap;
+    const cBitmap& m_bitmap;
     std::string m_filename;
 
     Type m_type;
