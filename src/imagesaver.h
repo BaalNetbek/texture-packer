@@ -10,7 +10,7 @@
 
 #include <string>
 
-struct cBitmap;
+class cBitmap;
 
 class cImageSaver final
 {
