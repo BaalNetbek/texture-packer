@@ -213,9 +213,9 @@ int main(int argc, char* argv[])
         if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
         {
             auto& bmp = image->getBitmap();
-            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.getWidth() + config.padding);
-            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.getHeight() + config.padding);
-            area += (bmp.getHeight() + config.padding) * (bmp.getHeight() + config.padding);
+            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.getWidth() + config.padding * 2);
+            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.getHeight() + config.padding * 2);
+            area += (bmp.getHeight() + config.padding * 2) * (bmp.getHeight() + config.padding * 2);
 
             imagesList.push_back(image.release());
         }
@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
                     for (; i < size; i++)
                     {
                         const auto& bmp = imagesList[i]->getBitmap();
-                        auto s = (bmp.getWidth() + config.padding) * (bmp.getHeight() + config.padding);
+                        auto s = (bmp.getWidth() + config.padding * 2) * (bmp.getHeight() + config.padding * 2);
                         area += s;
                     }
 

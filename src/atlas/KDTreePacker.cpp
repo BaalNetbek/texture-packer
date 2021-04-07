@@ -42,8 +42,8 @@ public:
 
             const auto padding = m_padding;
 
-            const auto imgWidth = size.width + padding + 2;
-            const auto imgHeight = size.height + padding + 2;
+            const auto imgWidth = size.width + padding * 2;
+            const auto imgHeight = size.height + padding * 2;
 
             const auto nodeWidth = m_area.width();
             const auto nodeHeight = m_area.height();
