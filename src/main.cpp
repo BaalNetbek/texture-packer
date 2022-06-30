@@ -95,13 +95,13 @@ int main(int argc, char* argv[])
                 config.padding = static_cast<uint32_t>(::atoi(argv[++i]));
             }
         }
-        // else if (::strcmp(arg, "-max") == 0)
-        // {
-        // if (i + 1 < argc)
-        // {
-        // config.maxTextureSize = static_cast<uint32_t>(::atoi(argv[++i]));
-        // }
-        // }
+        else if (::strcmp(arg, "-max") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                config.maxTextureSize = static_cast<uint32_t>(::atoi(argv[++i]));
+            }
+        }
         else if (::strcmp(arg, "-tl") == 0)
         {
             if (i + 1 < argc)
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     ::printf("Power of Two: %s.\n", isEnabled(config.pot));
     ::printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
     ::printf("Drop extension: %s.\n", isEnabled(config.dropExt));
-    // ::printf("Max atlas size %u px.\n", config.maxTextureSize);
+    ::printf("Max atlas size %u px.\n", config.maxTextureSize);
     if (resPathPrefix != nullptr)
     {
         ::printf("Resource path prefix: %s.\n", resPathPrefix);
@@ -263,7 +263,14 @@ int main(int argc, char* argv[])
                         area += s;
                     }
 
+                    auto oldTexSize = texSize;
                     texSize = calcSize(area, maxRectSize, config);
+
+                    if (oldTexSize.height == texSize.height && oldTexSize.width == texSize.width)
+                    {
+                        ::printf(" Cannot increase texture size, reached maximum (%u x %u)\n", config.maxTextureSize, config.maxTextureSize);
+                        return -1;
+                    }
 
                     // ::printf(" new texture size %u x %u.\n", texSize.width, texSize.height);
                     ::printf(".");
@@ -333,7 +340,7 @@ void showHelp(const char* name, const sConfig& config)
     ::printf("  -b size            add border around sprites (default %u px)\n", config.border);
     ::printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
     ::printf("  -dropext           drop file extension from sprite id (default %s)\n", isEnabled(config.dropExt));
-    // ::printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
+    ::printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
 }
 
 int DirectoryFilter(const dirent* p)
@@ -383,6 +390,16 @@ sSize calcSize(uint32_t area, const sSize& maxRectSize, const sConfig& config)
 
     width = fixSize(width, config.pot);
     height = fixSize(area / width, config.pot);
+
+    if (width > config.maxTextureSize)
+    {
+        width = config.maxTextureSize;
+    }
+
+    if (height > config.maxTextureSize)
+    {
+        height = config.maxTextureSize;
+    }
 
     return { width, height };
 }
