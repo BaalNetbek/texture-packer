@@ -16,9 +16,49 @@
 #include <algorithm>
 #include <cstring>
 
-bool cImage::IsImage(const char* /*path*/)
+namespace
 {
-    return true;
+
+    std::string TrimPath(const char* path, uint32_t trimPath)
+    {
+        std::string res;
+        if (path != nullptr)
+        {
+            res = path;
+
+            res.erase(0, trimPath);
+
+            auto pos = res.find_last_of(".");
+            if (pos != std::string::npos)
+            {
+                res.erase(pos);
+            }
+
+            if (res.substr(0, 2) == "./")
+            {
+                res.erase(0, 2);
+            }
+
+            std::replace(res.begin(), res.end(), '/', '_');
+        }
+
+        return res;
+    }
+
+} // namespace
+
+bool cImage::IsImage(const char* path)
+{
+    if (path != nullptr)
+    {
+        std::string res = path;
+        auto pos = res.find_last_of("/");
+        return pos != std::string::npos
+            && pos + 1 != std::string::npos
+            && res[pos + 1] != '.';
+    }
+
+    return false;
 }
 
 cImage::~cImage()
@@ -43,26 +83,11 @@ bool cImage::load(const char* path, uint32_t trimPath, cTrim* trim)
 
     m_name = path;
 
-    m_spriteId = path;
-
-    m_spriteId.erase(0, trimPath);
-
-    auto pos = m_spriteId.find_last_of(".");
-    if (pos != std::string::npos)
-    {
-        m_spriteId.erase(pos);
-    }
-
-    if (m_spriteId.substr(0, 2) == "./")
-    {
-        m_spriteId.erase(0, 2);
-    }
-
-    std::replace(m_spriteId.begin(), m_spriteId.end(), '/', '_');
-
+    m_spriteId = TrimPath(path, trimPath);
     if (m_spriteId.length() == 0)
     {
         ::printf("(EE) Trim value too big for path '%s'\n", path);
+        return false;
     }
 
     //     N=#comp     components
