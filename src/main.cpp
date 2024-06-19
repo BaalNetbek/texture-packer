@@ -225,8 +225,8 @@ int main(int argc, char* argv[])
         }
     }
 
-    auto sec = (getCurrentTime() - startTime) * 0.000001f;
-    ::printf("Loaded %u (%u) images in %g sec.\n", (uint32_t)imagesList.size(), totalFiles, sec);
+    auto ms = (getCurrentTime() - startTime) * 0.001f;
+    ::printf("Loaded %u (%u) images in %g ms.\n", (uint32_t)imagesList.size(), totalFiles, ms);
 
     if (imagesList.size() > 0)
     {
@@ -281,8 +281,8 @@ int main(int argc, char* argv[])
 
             if (done)
             {
-                auto sec = (getCurrentTime() - startTime) * 0.000001f;
-                ::printf(" in %g sec.\n", sec);
+                auto ms = (getCurrentTime() - startTime) * 0.001f;
+                ::printf(" in %g ms.\n", ms);
                 ::fflush(nullptr);
 
                 packer->buildAtlas();
