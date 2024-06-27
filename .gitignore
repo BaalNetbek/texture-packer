@@ -5,6 +5,8 @@
 .build_debug/
 .build_release/
 .ycm_extra_conf.py*
+/compile_commands.json
+cppcheck-output
 img/
 packimages
 project.xcworkspace/
@@ -12,4 +14,3 @@ tags
 test*/
 tmp/
 xcuserdata/
-cppcheck-output

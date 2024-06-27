@@ -1,5 +1,6 @@
 BUILD_DIR_RELEASE=.build_release
 BUILD_DIR_DEBUG=.build_debug
+COMPILE_COMMANDS_DIR=.compile_commands
 
 all:
 	@echo "Usage:"
@@ -20,6 +21,12 @@ debug:
 check:
 	cppcheck -j 1 --enable=all -f -I src src/ 2> cppcheck-output
 
+build_compile_commands:
+	$(shell if [ ! -d $(COMPILE_COMMANDS_DIR) ]; then mkdir $(COMPILE_COMMANDS_DIR); fi )
+	cd $(COMPILE_COMMANDS_DIR) && cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+	rm -fr compile_commands.json && ln -s $(COMPILE_COMMANDS_DIR)/compile_commands.json compile_commands.json
+
 clean:
 	rm -fr $(BUILD_DIR_RELEASE) $(BUILD_DIR_DEBUG) packimages
+	rm -fr $(COMPILE_COMMANDS_DIR) .cache/
 
