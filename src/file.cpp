@@ -6,7 +6,7 @@
 *
 \**********************************************/
 
-#include "file.h"
+#include "File.h"
 
 #include <cstdio>
 

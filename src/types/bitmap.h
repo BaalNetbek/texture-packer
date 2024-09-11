@@ -8,63 +8,20 @@
 
 #pragma once
 
-#include <algorithm>
-#include <cstdint>
-#include <string.h>
+#include "Types/Types.h"
 
 class cBitmap final
 {
 public:
-    ~cBitmap()
-    {
-        clear();
-    }
+    ~cBitmap();
 
-    void clear()
-    {
-        m_width = 0;
-        m_height = 0;
+    void clear();
 
-        if (m_manageData)
-        {
-            m_manageData = false;
-            delete[] m_data;
-        }
+    void createBitmap(const sSize& size);
+    void setBitmap(const sSize& size, void* data);
 
-        m_data = nullptr;
-    }
-
-    void createBitmap(uint32_t width, uint32_t height)
-    {
-        clear();
-
-        m_width = width;
-        m_height = height;
-
-        m_manageData = true;
-        m_data = new Pixel[width * height];
-    }
-
-    void setBitmap(uint32_t width, uint32_t height, void* data)
-    {
-        clear();
-
-        m_width = width;
-        m_height = height;
-
-        m_data = static_cast<Pixel*>(data);
-    }
-
-    cBitmap& operator=(const cBitmap& other)
-    {
-        if (this != &other)
-        {
-            createBitmap(other.m_width, other.m_height);
-            std::copy(other.getData(), other.getData() + other.m_width * other.m_height, m_data);
-        }
-
-        return *this;
-    }
+    cBitmap& operator=(const cBitmap& other);
+    cBitmap& operator=(cBitmap&& other) noexcept;
 
     template <typename T>
     void moveAndSet(T& me, T& other, T value)
@@ -73,30 +30,14 @@ public:
         other = value;
     }
 
-    cBitmap& operator=(cBitmap&& other) noexcept
+    const sSize& getSize() const
     {
-        if (this != &other)
-        {
-            clear();
-
-            moveAndSet(m_width, other.m_width, 0u);
-            moveAndSet(m_height, other.m_height, 0u);
-
-            moveAndSet(m_manageData, other.m_manageData, false);
-            moveAndSet(m_data, other.m_data, static_cast<Pixel*>(nullptr));
-        }
-
-        return *this;
+        return m_size;
     }
 
-    uint32_t getWidth() const
+    uint32_t getPitch() const
     {
-        return m_width;
-    }
-
-    uint32_t getHeight() const
-    {
-        return m_height;
+        return m_size.width;
     }
 
     struct Pixel
@@ -118,8 +59,7 @@ public:
     }
 
 private:
-    uint32_t m_width = 0;
-    uint32_t m_height = 0;
+    sSize m_size;
 
     bool m_manageData = false;
     Pixel* m_data = nullptr;

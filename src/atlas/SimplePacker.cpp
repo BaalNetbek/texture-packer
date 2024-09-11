@@ -7,9 +7,9 @@
 \**********************************************/
 
 #include "SimplePacker.h"
-#include "config.h"
-#include "image.h"
-#include "types/size.h"
+#include "Config.h"
+#include "Image.h"
+#include "Types/Types.h"
 
 SimplePacker::SimplePacker(uint32_t count, const sConfig& config)
     : AtlasPacker(config)
@@ -25,8 +25,10 @@ bool SimplePacker::compare(const cImage* a, const cImage* b) const
 {
     auto& bmpa = a->getBitmap();
     auto& bmpb = b->getBitmap();
-    return (bmpa.getWidth() * bmpa.getHeight() > bmpb.getWidth() * bmpb.getHeight())
-        && (bmpa.getWidth() + bmpa.getHeight() > bmpb.getWidth() + bmpb.getHeight());
+    auto& sizea = bmpa.getSize();
+    auto& sizeb = bmpb.getSize();
+    return (sizea.width * sizea.height > sizeb.width * sizeb.height)
+        && (sizea.width + sizea.height > sizeb.width + sizeb.height);
 }
 
 bool SimplePacker::add(const cImage* image)
@@ -36,20 +38,22 @@ bool SimplePacker::add(const cImage* image)
     const auto border = m_config.border;
     const auto padding = m_config.padding;
 
-    const auto width = m_atlas.getWidth() - bmp.getWidth() - border;
-    const auto height = m_atlas.getHeight() - bmp.getHeight() - border;
+    auto& atlasSize = m_atlas.getSize();
+    auto& bmpSize = bmp.getSize();
+    const auto width = atlasSize.width - bmpSize.width - border;
+    const auto height = atlasSize.height - bmpSize.height - border;
 
     sRect imgRc;
 
     for (uint32_t y = border; y < height;)
     {
         imgRc.top = y;
-        imgRc.bottom = y + bmp.getHeight();
+        imgRc.bottom = y + bmpSize.height;
 
         for (uint32_t x = border; x < width;)
         {
             imgRc.left = x;
-            imgRc.right = x + bmp.getWidth();
+            imgRc.right = x + bmpSize.width;
 
             const auto rc = checkRegion(imgRc);
             if (rc == nullptr)
@@ -89,7 +93,7 @@ const sRect* SimplePacker::checkRegion(const sRect& region) const
 void SimplePacker::setSize(const sSize& size)
 {
     m_images.clear();
-    m_atlas.createBitmap(size.width, size.height);
+    m_atlas.createBitmap(size);
 }
 
 void SimplePacker::makeAtlas(bool overlay)

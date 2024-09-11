@@ -6,9 +6,8 @@
 *
 \**********************************************/
 
-#include "image.h"
-#include "file.h"
-#include "trim.h"
+#include "Image.h"
+#include "Trim.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -90,23 +89,30 @@ bool cImage::load(const char* path, uint32_t trimPath, cTrim* trim)
         return false;
     }
 
-    //     N=#comp     components
-    //       1           grey
-    //       2           grey, alpha
-    //       3           red, green, blue
-    //       4           red, green, blue, alpha
+    // N=#comp | components
+    // --------+------------------------
+    // 1       | grey
+    // 2       | grey, alpha
+    // 3       | red, green, blue
+    // 4       | red, green, blue, alpha
     int width;
     int height;
     int bpp;
     m_stbImageData = stbi_load(path, &width, &height, &bpp, 4);
 
-    m_bitmap.setBitmap(width, height, m_stbImageData);
+    m_originalSize = {
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height)
+    };
+
+    m_bitmap.setBitmap(m_originalSize, m_stbImageData);
 
     if (m_stbImageData != nullptr && trim != nullptr)
     {
         if (trim->trim(path, m_bitmap))
         {
             m_bitmap = std::move(trim->getBitmap());
+            m_offset = trim->getOffset();
         }
     }
 

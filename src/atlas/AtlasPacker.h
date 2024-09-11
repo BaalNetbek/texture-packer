@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "types/bitmap.h"
+#include "Types/Bitmap.h"
 
 class cImage;
 struct sConfig;
@@ -18,7 +18,7 @@ struct sSize;
 class AtlasPacker
 {
 public:
-    static AtlasPacker* create(size_t count, const sConfig& config);
+    static AtlasPacker* create(uint32_t count, const sConfig& config);
 
 public:
     AtlasPacker(const sConfig& config);

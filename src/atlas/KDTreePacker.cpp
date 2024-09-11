@@ -7,10 +7,9 @@
 \**********************************************/
 
 #include "KDTreePacker.h"
-#include "config.h"
-#include "image.h"
-#include "types/rect.h"
-#include "types/size.h"
+#include "Config.h"
+#include "Image.h"
+#include "Types/Types.h"
 
 class cKDNode final
 {
@@ -151,8 +150,10 @@ bool KDTreePacker::compare(const cImage* a, const cImage* b) const
 {
     auto& bmpa = a->getBitmap();
     auto& bmpb = b->getBitmap();
-    return (bmpa.getWidth() > bmpb.getHeight())
-        || (bmpa.getWidth() * bmpa.getHeight() > bmpb.getWidth() * bmpb.getHeight());
+    auto& sizea = bmpa.getSize();
+    auto& sizeb = bmpb.getSize();
+    return (sizea.width > sizeb.height)
+        || (sizea.width * sizea.height > sizeb.width * sizeb.height);
 }
 
 void KDTreePacker::setSize(const sSize& size)
@@ -163,13 +164,14 @@ void KDTreePacker::setSize(const sSize& size)
     m_root = new cKDNode({ border, border, size.width - border, size.height - border }, m_config.padding);
 
     m_nodes.clear();
-    m_atlas.createBitmap(size.width, size.height);
+    m_atlas.createBitmap(size);
 }
 
 bool KDTreePacker::add(const cImage* image)
 {
     auto& bmp = image->getBitmap();
-    auto node = m_root->add({ bmp.getWidth(), bmp.getHeight() });
+    auto& size = bmp.getSize();
+    auto node = m_root->add(size);
     if (node != nullptr)
     {
         m_nodes.push_back({ image, node });

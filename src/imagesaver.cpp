@@ -6,9 +6,8 @@
 *
 \**********************************************/
 
-#include "imagesaver.h"
-#include "file.h"
-#include "types/bitmap.h"
+#include "Imagesaver.h"
+#include "Types/Bitmap.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
@@ -46,8 +45,7 @@ cImageSaver::Type cImageSaver::getWriter(const char* filename) const
             const char* ext;
         };
 
-        static const sCompare List[] =
-        {
+        static const sCompare List[] = {
             { Type::png, ".png" },
             { Type::bmp, ".bmp" },
             { Type::tga, ".tga" },
@@ -68,8 +66,9 @@ cImageSaver::Type cImageSaver::getWriter(const char* filename) const
 
 bool cImageSaver::save() const
 {
-    const int w = m_bitmap.getWidth();
-    const int h = m_bitmap.getHeight();
+    auto& size = m_bitmap.getSize();
+    const int w = size.width;
+    const int h = size.height;
     const int stride = w * 4;
     const auto data = m_bitmap.getData();
 

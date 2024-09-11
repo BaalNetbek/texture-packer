@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "types/bitmap.h"
+#include "Types/Bitmap.h"
 
 #include <string>
 
@@ -31,6 +31,16 @@ public:
         return m_bitmap;
     }
 
+    const sSize& getOriginalSize() const
+    {
+        return m_originalSize;
+    }
+
+    const sOffset& getOffset() const
+    {
+        return m_offset;
+    }
+
     const std::string& getName() const
     {
         return m_name;
@@ -44,6 +54,9 @@ public:
 private:
     std::string m_name;
     std::string m_spriteId;
+
+    sSize m_originalSize;
+    sOffset m_offset;
 
     uint8_t* m_stbImageData = nullptr;
     cBitmap m_bitmap;

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "AtlasPacker.h"
+
 #include <vector>
 
 class cKDNode;

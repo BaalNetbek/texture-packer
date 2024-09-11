@@ -7,18 +7,18 @@
 \**********************************************/
 
 #include "AtlasPacker.h"
+#include "Config.h"
+#include "File.h"
+#include "Image.h"
 #include "KDTreePacker.h"
 #include "SimplePacker.h"
-#include "config.h"
-#include "file.h"
-#include "image.h"
-#include "trim.h"
-#include "types/rect.h"
+#include "Trim.h"
+#include "Types/Types.h"
+
 #include <algorithm>
-#include <cmath>
 #include <sstream>
 
-AtlasPacker* AtlasPacker::create(size_t count, const sConfig& config)
+AtlasPacker* AtlasPacker::create(uint32_t count, const sConfig& config)
 {
     AtlasPacker* packer = nullptr;
 
@@ -47,8 +47,7 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
 {
     auto& bmp = image->getBitmap();
 
-    const auto width = bmp.getWidth();
-    const auto height = bmp.getHeight();
+    const auto& size = bmp.getSize();
 
     const auto padding = m_config.padding;
 
@@ -56,15 +55,15 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
     const auto offy = rc.top;
     const auto offxPadded = offx + padding;
     const auto offyPadded = offy + padding;
-    const auto pitch = m_atlas.getWidth();
+    const auto pitch = m_atlas.getPitch();
 
     auto srcData = bmp.getData();
     auto dstData = m_atlas.getData();
 
-    for (uint32_t y = 0; y < height; y++)
+    for (uint32_t y = 0; y < size.height; y++)
     {
         auto dst = dstData + (y + offyPadded) * pitch + offxPadded;
-        for (uint32_t x = 0; x < width; x++)
+        for (uint32_t x = 0; x < size.width; x++)
         {
             *dst++ = *srcData++;
         }
@@ -91,27 +90,27 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
         */
 
         auto srcLeft = bmp.getData();
-        for (uint32_t y = 0; y < height; ++y)
+        for (uint32_t y = 0; y < size.height; ++y)
         {
             auto left = dstData + (y + offyPadded) * pitch + offx;
-            auto right = dstData + (y + offyPadded) * pitch + offxPadded + width;
-            for (size_t i = 0; i < padding; ++i)
+            auto right = dstData + (y + offyPadded) * pitch + offxPadded + size.width;
+            for (uint32_t i = 0; i < padding; ++i)
             {
                 *(left + i) = *srcLeft;
-                *(right + i) = *(srcLeft + width - 1);
+                *(right + i) = *(srcLeft + size.width - 1);
             }
-            srcLeft += width;
+            srcLeft += size.width;
         }
 
         auto srcTop = bmp.getData();
-        for (uint32_t x = 0; x < width; ++x)
+        for (uint32_t x = 0; x < size.width; ++x)
         {
             auto top = dstData + offy * pitch + offxPadded + x;
-            auto bottom = dstData + (offyPadded + height) * pitch + offxPadded + x;
-            for (size_t i = 0; i < padding; ++i)
+            auto bottom = dstData + (offyPadded + size.height) * pitch + offxPadded + x;
+            for (uint32_t i = 0; i < padding; ++i)
             {
                 *(top + pitch * i) = *srcTop;
-                *(bottom + pitch * i) = *(srcTop + width * (height - 1));
+                *(bottom + pitch * i) = *(srcTop + size.width * (size.height - 1));
             }
             srcTop++;
         }
@@ -119,8 +118,8 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
         // border corner pixels
         {
             auto dst = dstData + offx + offy * pitch;
-            auto widthOffset = width + padding;
-            auto heightOffset = height + padding;
+            auto widthOffset = size.width + padding;
+            auto heightOffset = size.height + padding;
 
             auto topLeft = dst;
             auto topRight = dst + widthOffset;
@@ -130,12 +129,12 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
             auto src = dstData + offyPadded * pitch + offxPadded;
 
             auto tlValue = *src;
-            auto trValue = *(src + width - 1);
-            auto blValue = *(src + pitch * (height - 1));
-            auto brValue = *(src + pitch * (height - 1) + width - 1);
-            for (size_t x = 0; x < padding; ++x)
+            auto trValue = *(src + size.width - 1);
+            auto blValue = *(src + pitch * (size.height - 1));
+            auto brValue = *(src + pitch * (size.height - 1) + size.width - 1);
+            for (uint32_t x = 0; x < padding; ++x)
             {
-                for (size_t y = 0; y < padding; ++y)
+                for (uint32_t y = 0; y < padding; ++y)
                 {
                     auto c = x * pitch + y;
 
@@ -156,10 +155,10 @@ void AtlasPacker::copyBitmap(const sRect& rc, const cImage* image, bool overlay)
         const float sA = 0.6f;
         const float inv = 1.0f / 255.0f;
 
-        for (uint32_t y = 0; y < height; y++)
+        for (uint32_t y = 0; y < size.height; y++)
         {
-            auto dst = dstData + (y + offy) * pitch + offx;
-            for (uint32_t x = 0; x < width; x++)
+            auto dst = dstData + (y + offyPadded) * pitch + offxPadded;
+            for (uint32_t x = 0; x < size.width; x++)
             {
                 const float dR = dst->r * inv;
                 const float dG = dst->g * inv;
@@ -200,9 +199,9 @@ bool AtlasPacker::generateResFile(const char* name, const char* atlasName)
     {
         std::stringstream out;
 
-        const uint32_t size = getRectsCount();
-        std::vector<uint32_t> indexes(size);
-        for (uint32_t i = 0; i < size; i++)
+        const uint32_t rectsCount = getRectsCount();
+        std::vector<uint32_t> indexes(rectsCount);
+        for (uint32_t i = 0; i < rectsCount; i++)
         {
             indexes[i] = i;
         }
@@ -216,23 +215,37 @@ bool AtlasPacker::generateResFile(const char* name, const char* atlasName)
         out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
         auto& bitmap = m_atlas;
-        out << "<atlas width=\"" << bitmap.getWidth() << "\" height=\"" << bitmap.getHeight() << "\">\n";
+        auto& size = bitmap.getSize();
+        out << "<atlas width=\"" << size.width << "\" height=\"" << size.height << "\">\n";
 
-        for (uint32_t i = 0; i < size; i++)
+        for (uint32_t i = 0; i < rectsCount; i++)
         {
-            const uint32_t idx = indexes[i];
+            const auto idx = indexes[i];
 
-            auto& spriteId = getImageByIndex(idx)->getSpriteId();
+            auto image = getImageByIndex(idx);
+            auto& spriteId = image->getSpriteId();
+
             const auto& rc = getRectByIndex(idx);
-            const auto tx = rc.left;
-            const auto ty = rc.top;
-            const auto tw = rc.width();
-            const auto th = rc.height();
+            sOffset pos{
+                rc.left + m_config.padding,
+                rc.top + m_config.padding
+            };
+            sSize size{
+                rc.width(),
+                rc.height()
+            };
+
+            auto& originalSize = image->getOriginalSize();
+            auto& offset = image->getOffset();
+            sOffset hotspot{
+                static_cast<uint32_t>(originalSize.width * 0.5f - offset.x),
+                static_cast<uint32_t>(originalSize.height * 0.5f - offset.y)
+            };
 
             out << "    ";
             out << "<" << spriteId << " texture=\"" << atlasName << "\" ";
-            out << "rect=\"" << tx + m_config.padding << " " << ty + m_config.padding << " " << tw << " " << th << "\" ";
-            out << "hotspot=\"" << std::round(tw * 0.5f) << " " << std::round(th * 0.5f) << "\" />\n";
+            out << "rect=\"" << pos.x << " " << pos.y << " " << size.width << " " << size.height << "\" ";
+            out << "hotspot=\"" << hotspot.x << " " << hotspot.y << "\" />\n";
         }
         out << "</atlas>\n";
 

@@ -10,6 +10,18 @@
 
 #include <cstdint>
 
+struct sSize
+{
+    uint32_t width = 0u;
+    uint32_t height = 0u;
+};
+
+struct sOffset
+{
+    uint32_t x = 0u;
+    uint32_t y = 0u;
+};
+
 struct sRect
 {
     uint32_t width() const

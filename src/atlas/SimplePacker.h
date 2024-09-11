@@ -9,7 +9,8 @@
 #pragma once
 
 #include "AtlasPacker.h"
-#include "types/rect.h"
+#include "Types/Types.h"
+
 #include <vector>
 
 class SimplePacker final : public AtlasPacker

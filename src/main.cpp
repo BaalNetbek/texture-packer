@@ -11,7 +11,7 @@
 #include "image.h"
 #include "imagesaver.h"
 #include "trim.h"
-#include "types/size.h"
+#include "types/types.h"
 #include "utils.h"
 
 #include <algorithm>
@@ -213,9 +213,10 @@ int main(int argc, char* argv[])
         if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
         {
             auto& bmp = image->getBitmap();
-            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, bmp.getWidth() + config.padding * 2);
-            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, bmp.getHeight() + config.padding * 2);
-            area += (bmp.getHeight() + config.padding * 2) * (bmp.getHeight() + config.padding * 2);
+            auto& size = bmp.getSize();
+            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, size.width + config.padding * 2);
+            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, size.height + config.padding * 2);
+            area += (size.width + config.padding * 2) * (size.height + config.padding * 2);
 
             imagesList.push_back(image.release());
         }
@@ -259,7 +260,8 @@ int main(int argc, char* argv[])
                     for (; i < size; i++)
                     {
                         const auto& bmp = imagesList[i]->getBitmap();
-                        auto s = (bmp.getWidth() + config.padding * 2) * (bmp.getHeight() + config.padding * 2);
+                        auto& size = bmp.getSize();
+                        auto s = (size.width + config.padding * 2) * (size.height + config.padding * 2);
                         area += s;
                     }
 
@@ -303,11 +305,12 @@ int main(int argc, char* argv[])
                         packer->generateResFile(outputResName, atlasName.c_str());
                     }
 
+                    auto& size = atlas.getSize();
                     ::printf("Atlas '%s' %u x %u (%s px) has been created.\n",
                              outputAtlasName,
-                             atlas.getWidth(),
-                             atlas.getHeight(),
-                             formatNum(atlas.getWidth() * atlas.getHeight()));
+                             size.width,
+                             size.height,
+                             formatNum(size.width * size.height));
                 }
             }
         } while (done == false); // && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);

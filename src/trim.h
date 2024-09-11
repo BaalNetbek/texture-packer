@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "types/bitmap.h"
+#include "Types/Bitmap.h"
 
 struct sConfig;
 
@@ -24,6 +24,11 @@ public:
         return m_bitmap;
     }
 
+    const sOffset& getOffset() const
+    {
+        return m_offset;
+    }
+
 protected:
     uint32_t findLeft(const cBitmap& input) const;
     uint32_t findRigth(const cBitmap& input) const;
@@ -32,9 +37,8 @@ protected:
 
 protected:
     cBitmap m_bitmap;
+    sOffset m_offset;
 };
-
-
 
 class cTrimRigthBottom final : public cTrim
 {
