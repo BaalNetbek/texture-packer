@@ -6,13 +6,13 @@
 *
 \**********************************************/
 
-#include "atlas/AtlasPacker.h"
-#include "config.h"
-#include "image.h"
-#include "imagesaver.h"
-#include "trim.h"
-#include "types/types.h"
-#include "utils.h"
+#include "Atlas/AtlasPacker.h"
+#include "Config.h"
+#include "Image.h"
+#include "Imagesaver.h"
+#include "Trim.h"
+#include "Types/Types.h"
+#include "Utils.h"
 
 #include <algorithm>
 #include <cmath>
