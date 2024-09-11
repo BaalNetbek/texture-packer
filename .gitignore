@@ -5,6 +5,8 @@
 .build_debug/
 .build_release/
 .ycm_extra_conf.py*
+/.cache/
+/.compile_commands/
 /compile_commands.json
 cppcheck-output
 img/
