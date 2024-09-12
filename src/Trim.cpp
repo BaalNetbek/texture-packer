@@ -12,48 +12,63 @@
 
 #include <cstdio>
 
-bool cTrim::trim(const char* path, const cBitmap& input)
+bool cTrim::doTrim(const cBitmap& input, cBitmap& output, sOffset& offset) const
 {
-    m_bitmap.clear();
-
     auto left = findLeft(input);
     auto right = findRigth(input);
     auto top = findTop(input);
     auto bottom = findBottom(input);
 
     auto& size = input.getSize();
-    if (left == 0 && right == size.width && top == 0 && bottom == size.height)
+    // printf("  source size: %u x %u\n", size.width, size.height);
+
+    if (left == 0 && right == size.width - 1 && top == 0 && bottom == size.height - 1)
     {
+        // printf("  original size\n");
         return false;
     }
-
-    if (left > right || top > bottom)
+    else if (left > right || top > bottom)
     {
-        printf("(WW) Empty sprite: %s\n", path);
+        // printf("  empty sprite\n");
+        return true;
     }
-    else
+
+    // printf("  new rect: %u <-> %u , %u <-> %u\n", left, right, top, bottom);
+    offset = { left, top };
+
+    auto src = input.getData() + top * size.width;
+
+    auto width = right - left + 1;
+    auto height = bottom - top + 1;
+
+    output.createBitmap({ width, height });
+    auto dst = output.getData();
+
+    for (uint32_t y = top; y <= bottom; y++)
     {
-        m_offset.x = left;
-        m_offset.y = top;
-
-        // printf("Trim %s (%u x %u): %u <-> %u , %u <-> %u\n", path, size.width, size.height, left, right, top, bottom);
-
-        auto src = input.getData() + top * size.width;
-
-        m_bitmap.createBitmap({ right - left + 1, bottom - top + 1 });
-        auto dst = m_bitmap.getData();
-
-        for (uint32_t y = top; y <= bottom; y++)
+        for (uint32_t x = left; x <= right; x++)
         {
-            for (uint32_t x = left; x <= right; x++)
-            {
-                *dst++ = src[x];
-            }
-            src += size.width;
+            *dst++ = src[x];
         }
+        src += size.width;
     }
 
     return true;
+}
+
+bool cTrim::trim(const char* /*path*/, const cBitmap& input)
+{
+    // printf("Trim begin: '%s'\n", path);
+
+    m_bitmap.clear();
+    m_offset = { 0u, 0u };
+
+    auto result = doTrim(input, m_bitmap, m_offset);
+
+    // printf("  trim end.\n");
+    // fflush(nullptr);
+
+    return result;
 }
 
 uint32_t cTrim::findLeft(const cBitmap& input) const
@@ -86,7 +101,7 @@ uint32_t cTrim::findRigth(const cBitmap& input) const
         {
             if (src->a != 0)
             {
-                return offset + 1;
+                return offset;
             }
             src += size.width;
         }
@@ -125,7 +140,7 @@ uint32_t cTrim::findBottom(const cBitmap& input) const
         {
             if (src->a != 0)
             {
-                return offset + 1;
+                return offset;
             }
             src++;
         }

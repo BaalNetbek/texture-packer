@@ -30,6 +30,7 @@ public:
     }
 
 protected:
+    bool doTrim(const cBitmap& input, cBitmap& output, sOffset& offset) const;
     uint32_t findLeft(const cBitmap& input) const;
     uint32_t findRigth(const cBitmap& input) const;
     uint32_t findTop(const cBitmap& input) const;
