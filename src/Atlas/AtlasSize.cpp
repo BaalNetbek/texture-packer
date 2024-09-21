@@ -10,6 +10,7 @@
 #include "Config.h"
 
 #include <algorithm>
+#include <cmath>
 
 cAtlasSize::cAtlasSize(const sConfig& config)
     : m_config(config)
