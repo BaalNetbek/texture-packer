@@ -18,20 +18,14 @@
 #include <algorithm>
 #include <sstream>
 
-AtlasPacker* AtlasPacker::create(uint32_t count, const sConfig& config)
+std::unique_ptr<AtlasPacker> AtlasPacker::create(uint32_t count, const sConfig& config)
 {
-    AtlasPacker* packer = nullptr;
-
     if (config.slowMethod)
     {
-        packer = new SimplePacker(count, config);
-    }
-    else
-    {
-        packer = new KDTreePacker(config);
+        return std::make_unique<SimplePacker>(count, config);
     }
 
-    return packer;
+    return std::make_unique<KDTreePacker>(config);
 }
 
 AtlasPacker::AtlasPacker(const sConfig& config)

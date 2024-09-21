@@ -10,6 +10,8 @@
 
 #include "Types/Bitmap.h"
 
+#include <memory>
+
 class cImage;
 struct sConfig;
 struct sRect;
@@ -18,7 +20,7 @@ struct sSize;
 class AtlasPacker
 {
 public:
-    static AtlasPacker* create(uint32_t count, const sConfig& config);
+    static std::unique_ptr<AtlasPacker> create(uint32_t count, const sConfig& config);
 
 public:
     AtlasPacker(const sConfig& config);

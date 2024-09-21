@@ -12,32 +12,6 @@
 #include <cstring>
 #include <sys/time.h>
 
-uint32_t nextPot(uint32_t i)
-{
-    i--;
-    i |= i >> 1;
-    i |= i >> 2;
-    i |= i >> 4;
-    i |= i >> 8;
-    i |= i >> 16;
-    i++;
-    return i;
-}
-
-uint32_t fixSize(uint32_t size, bool isPot)
-{
-    if (isPot)
-    {
-        size = nextPot(size);
-    }
-    else if ((size & 0x01) != 0)
-    {
-        size++;
-    }
-
-    return size;
-}
-
 uint64_t getCurrentTime()
 {
     timeval t;

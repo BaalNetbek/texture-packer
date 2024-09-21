@@ -7,6 +7,7 @@
 \**********************************************/
 
 #include "Atlas/AtlasPacker.h"
+#include "Atlas/AtlasSize.h"
 #include "Config.h"
 #include "Image.h"
 #include "Imagesaver.h"
@@ -15,7 +16,6 @@
 #include "Utils.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <dirent.h>
@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-void showHelp(const char* name, const sConfig& config);
+using ImagesList = std::vector<cImage*>;
 
 struct FileInfo
 {
@@ -31,10 +31,12 @@ struct FileInfo
     std::string path;
 };
 
-typedef std::vector<FileInfo> FilesList;
-void addPath(uint32_t trimCount, const std::string& path, bool recurse, FilesList& filesList);
+using FilesList = std::vector<FileInfo>;
 
-sSize calcSize(uint32_t area, const sSize& maxRectSize, const sConfig& config);
+void showHelp(const char* name, const sConfig& config);
+void printOversizeError(const sConfig& config, const sSize& atlasSize);
+void addPath(uint32_t trimCount, const std::string& path, bool recurse, FilesList& filesList);
+bool prepareSize(AtlasPacker* packer, const ImagesList& imagesList, const sSize& atlasSize);
 
 int main(int argc, char* argv[])
 {
@@ -198,14 +200,13 @@ int main(int argc, char* argv[])
         filesList.resize(std::distance(filesList.begin(), it));
     }
 
-    uint32_t area = 0;
-    sSize maxRectSize;
-
     // load images
     auto startTime = getCurrentTime();
     std::unique_ptr<cTrim> trim(config.trim ? new cTrim() : nullptr);
-    std::vector<cImage*> imagesList;
+    ImagesList imagesList;
     imagesList.reserve(filesList.size());
+
+    cAtlasSize sizeCalculator(config);
 
     for (const auto& f : filesList)
     {
@@ -214,9 +215,7 @@ int main(int argc, char* argv[])
         {
             auto& bmp = image->getBitmap();
             auto& size = bmp.getSize();
-            maxRectSize.width = std::max<uint32_t>(maxRectSize.width, size.width + config.padding * 2);
-            maxRectSize.height = std::max<uint32_t>(maxRectSize.height, size.height + config.padding * 2);
-            area += (size.width + config.padding * 2) * (size.height + config.padding * 2);
+            sizeCalculator.addRect(size);
 
             imagesList.push_back(image.release());
         }
@@ -231,66 +230,48 @@ int main(int argc, char* argv[])
 
     if (imagesList.size() > 0)
     {
-        std::unique_ptr<AtlasPacker> packer(AtlasPacker::create(imagesList.size(), config));
+        auto packer = AtlasPacker::create(imagesList.size(), config);
 
         std::stable_sort(imagesList.begin(), imagesList.end(), [&packer](const cImage* a, const cImage* b) -> bool {
             return packer->compare(a, b);
         });
 
-        auto texSize = calcSize(area, maxRectSize, config);
-        // ::printf("Start from %u x %u.\n", texSize.width, texSize.height);
+        auto atlasSize = sizeCalculator.calcSize();
+        if (sizeCalculator.isGood(atlasSize) == false)
+        {
+            printOversizeError(config, atlasSize);
+            return -1;
+        }
+
+        ::printf("Packing:\n");
+        ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
+        ::fflush(nullptr);
 
         startTime = getCurrentTime();
 
-        ::printf("Packing ");
-        ::fflush(nullptr);
-        bool done = true;
+        bool done = false;
         do
         {
-            done = true;
-            packer->setSize(texSize);
-            for (size_t i = 0, size = imagesList.size(); i < size; i++)
+            if (prepareSize(packer.get(), imagesList, atlasSize) == false)
             {
-                const auto& img = imagesList[i];
-
-                if (packer->add(img) == false)
+                atlasSize = sizeCalculator.nextSize(atlasSize, 8u);
+                if (sizeCalculator.isGood(atlasSize) == false)
                 {
-                    done = false;
-
-                    for (; i < size; i++)
-                    {
-                        const auto& bmp = imagesList[i]->getBitmap();
-                        auto& size = bmp.getSize();
-                        auto s = (size.width + config.padding * 2) * (size.height + config.padding * 2);
-                        area += s;
-                    }
-
-                    texSize = calcSize(area, maxRectSize, config);
-
-                    if (texSize.width > config.maxTextureSize || texSize.height > config.maxTextureSize)
-                    {
-                        ::printf(" Cannot increase texture size, reached maximum (%u x %u)\n", config.maxTextureSize, config.maxTextureSize);
-                        return -1;
-                    }
-
-                    // ::printf(" new texture size %u x %u.\n", texSize.width, texSize.height);
-                    ::printf(".");
-                    ::fflush(nullptr);
-                    break;
+                    printOversizeError(config, atlasSize);
+                    return -1;
                 }
-            }
 
-            if (done)
-            {
-                auto ms = (getCurrentTime() - startTime) * 0.001f;
-                ::printf(" in %g ms.\n", ms);
+                ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
                 ::fflush(nullptr);
-
+            }
+            else
+            {
                 packer->buildAtlas();
-
                 auto& atlas = packer->getBitmap();
+
+                cImageSaver saver(atlas, outputAtlasName);
+
                 // write texture
-                cImageSaver saver(packer->getBitmap(), outputAtlasName);
                 if (saver.save() == true)
                 {
                     outputAtlasName = saver.getAtlasName();
@@ -298,31 +279,38 @@ int main(int argc, char* argv[])
                     // write resource file
                     if (outputResName != nullptr)
                     {
-                        std::string atlasName = resPathPrefix != nullptr ? resPathPrefix : "";
+                        std::string atlasName = resPathPrefix != nullptr
+                            ? resPathPrefix
+                            : "";
                         atlasName += outputAtlasName;
 
                         packer->generateResFile(outputResName, atlasName.c_str());
                     }
 
-                    auto area = 0u;
-                    for (auto img : imagesList)
-                    {
-                        auto& bmp = img->getBitmap();
-                        auto& size = bmp.getSize();
-                        area += (size.width + config.padding * 2) * (size.height + config.padding * 2);
-                    }
+                    auto spritesArea = sizeCalculator.getArea();
+                    auto atlasArea = atlasSize.width * atlasSize.height;
+                    auto percent = static_cast<uint32_t>(100.0f * spritesArea / atlasArea);
 
-                    auto& size = atlas.getSize();
-                    auto percent = static_cast<uint32_t>(area * 100.0f / (size.width * size.height));
-                    ::printf("Atlas '%s' %u x %u (%s px, fill: %u%%) has been created.\n",
+                    ::printf("Atlas '%s' (%u x %u, fill: %u%%) has been created",
                              outputAtlasName,
-                             size.width,
-                             size.height,
-                             formatNum(size.width * size.height),
+                             atlasSize.width,
+                             atlasSize.height,
                              percent);
                 }
+                else
+                {
+                    ::printf("Error writting atlas '%s' (%u x %u)", outputAtlasName,
+                             atlasSize.width,
+                             atlasSize.height);
+                }
+
+                auto ms = (getCurrentTime() - startTime) * 0.001f;
+                ::printf(" in %g ms.\n", ms);
+                ::fflush(nullptr);
+
+                done = true;
             }
-        } while (done == false); // && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);
+        } while (done == false);
 
         for (auto img : imagesList)
         {
@@ -353,6 +341,17 @@ void showHelp(const char* name, const sConfig& config)
     ::printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
     ::printf("  -dropext           drop file extension from sprite id (default %s)\n", isEnabled(config.dropExt));
     ::printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
+}
+
+void printOversizeError(const sConfig& config, const sSize& atlasSize)
+{
+    ::printf("\n");
+    ::printf("Desired texture size %u x %u, but maximum %u x %u.\n",
+             atlasSize.width,
+             atlasSize.height,
+             config.maxTextureSize,
+             config.maxTextureSize);
+    ::fflush(nullptr);
 }
 
 int DirectoryFilter(const dirent* p)
@@ -394,24 +393,17 @@ void addPath(uint32_t trimCount, const std::string& root, bool recurse, FilesLis
     }
 }
 
-sSize calcSize(uint32_t area, const sSize& maxRectSize, const sConfig& config)
+bool prepareSize(AtlasPacker* packer, const ImagesList& imagesList, const sSize& atlasSize)
 {
-    auto sq = static_cast<uint32_t>(sqrt(area));
-    auto width = std::max<uint32_t>(sq, maxRectSize.width) + config.border * 2;
-    auto height = std::max<uint32_t>(sq, maxRectSize.height) + config.border * 2;
-
-    width = fixSize(width, config.pot);
-    height = fixSize(area / width, config.pot);
-
-    if (width > config.maxTextureSize)
+    packer->setSize(atlasSize);
+    for (size_t i = 0, size = imagesList.size(); i < size; i++)
     {
-        width = config.maxTextureSize;
+        const auto& img = imagesList[i];
+        if (packer->add(img) == false)
+        {
+            return false;
+        }
     }
 
-    if (height > config.maxTextureSize)
-    {
-        height = config.maxTextureSize;
-    }
-
-    return { width, height };
+    return true;
 }

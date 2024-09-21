@@ -7,8 +7,8 @@
 \**********************************************/
 
 #include "Trim.h"
+#include "Atlas/AtlasSize.h"
 #include "Config.h"
-#include "Utils.h"
 
 #include <cstdio>
 
@@ -161,8 +161,8 @@ bool cTrimRigthBottom::trim(const char* /*path*/, const cBitmap& input)
 
     const auto border = m_config.border;
 
-    const auto width = fixSize(findRigth(input) + border, m_config.pot);
-    const auto height = fixSize(findBottom(input) + border, m_config.pot);
+    const auto width = cAtlasSize::FixSize(findRigth(input) + border, m_config.pot);
+    const auto height = cAtlasSize::FixSize(findBottom(input) + border, m_config.pot);
 
     auto& size = input.getSize();
     if (width == size.width && height == size.height)

@@ -149,11 +149,47 @@ KDTreePacker::~KDTreePacker(void)
 bool KDTreePacker::compare(const cImage* a, const cImage* b) const
 {
     auto& bmpa = a->getBitmap();
-    auto& bmpb = b->getBitmap();
     auto& sizea = bmpa.getSize();
+
+    auto& bmpb = b->getBitmap();
     auto& sizeb = bmpb.getSize();
+
+#if 0
+
+    if (sizea.height < sizeb.height)
+    {
+        return true;
+    }
+    if (sizeb.height < sizea.height)
+    {
+        return false;
+    }
+
+    auto areaa = sizea.width * sizea.height;
+    auto areab = sizeb.width * sizeb.height;
+
+    if (areaa < areab)
+    {
+        return true;
+    }
+    if (areab < areaa)
+    {
+        return false;
+    }
+
+    return false;
+
+#elif 0
+
     return (sizea.width > sizeb.height)
         || (sizea.width * sizea.height > sizeb.width * sizeb.height);
+
+#else
+
+    return (sizea.height > sizeb.height)
+        || (sizea.width * sizea.height > sizeb.width * sizeb.height);
+
+#endif
 }
 
 void KDTreePacker::setSize(const sSize& size)
