@@ -265,10 +265,9 @@ int main(int argc, char* argv[])
                         area += s;
                     }
 
-                    auto oldTexSize = texSize;
                     texSize = calcSize(area, maxRectSize, config);
 
-                    if (oldTexSize.height == texSize.height && oldTexSize.width == texSize.width)
+                    if (texSize.width > config.maxTextureSize || texSize.height > config.maxTextureSize)
                     {
                         ::printf(" Cannot increase texture size, reached maximum (%u x %u)\n", config.maxTextureSize, config.maxTextureSize);
                         return -1;
@@ -305,12 +304,22 @@ int main(int argc, char* argv[])
                         packer->generateResFile(outputResName, atlasName.c_str());
                     }
 
+                    auto area = 0u;
+                    for (auto img : imagesList)
+                    {
+                        auto& bmp = img->getBitmap();
+                        auto& size = bmp.getSize();
+                        area += (size.width + config.padding * 2) * (size.height + config.padding * 2);
+                    }
+
                     auto& size = atlas.getSize();
-                    ::printf("Atlas '%s' %u x %u (%s px) has been created.\n",
+                    auto percent = static_cast<uint32_t>(area * 100.0f / (size.width * size.height));
+                    ::printf("Atlas '%s' %u x %u (%s px, fill: %u%%) has been created.\n",
                              outputAtlasName,
                              size.width,
                              size.height,
-                             formatNum(size.width * size.height));
+                             formatNum(size.width * size.height),
+                             percent);
                 }
             }
         } while (done == false); // && texSize.width <= config.maxTextureSize && texSize.height <= config.maxTextureSize);
