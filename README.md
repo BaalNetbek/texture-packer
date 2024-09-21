@@ -1,19 +1,19 @@
-##Texture Packer##
+# Texture Packer
 
 Texture Packer tool allows you to pack individual images into one texture atlas.
 
-##Features##
+## Features
 
-* Automatically add all images from folder or from command line.
-* Supported input formats: JPEG, PNG, TGA, BMP, PSD, GIF, HDR, PIC, PNM.
-* Write to: PNG (default), TGA, BMP.
-* Ability to set border around image.
-* Ability to trim input images.
+- Automatically add all images from folder or from command line.
+- Supported input formats: JPEG, PNG, TGA, BMP, PSD, GIF, HDR, PIC, PNM.
+- Write to: PNG (default), TGA, BMP.
+- Ability to set border around image.
+- Ability to trim input images.
 
-##Usage##
+## Usage
 
-```
-$ packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
+```sh
+packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
   INPUT_IMAGE        input image name or directory separated by space
   -o ATLAS           output atlas name (default PNG)
   -res DESC_TEXTURE  output atlas description as XML
@@ -26,29 +26,28 @@ $ packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
   -p size            add padding between sprites
 ```
 
-##Download and build##
+## Download and build
 
 You can browse the source code repository on GitHub or get a copy using git with the following command:
-```
-$ git clone https://bitbucket.org/andreyu/texture-packer.git
-$ make release
+```sh
+git clone https://bitbucket.org/andreyu/texture-packer.git
+make release
 ```
 
-##Input files notes##
+## Input files notes
 
-* `JPEG` baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib).
-* `PNG` 1/2/4/8-bit-per-channel (16 bpc not supported).
-* `TGA` (not sure what subset, if a subset).
-* `BMP` non-1bpp, non-RLE.
-* `PSD` (composited view only, no extra channels, 8/16 bit-per-channel).
-* `GIF` (*comp always reports as 4-channel).
-* `HDR` (radiance rgbE format).
-* `PIC` (Softimage PIC).
-* `PNM` (PPM and PGM binary only).
+- **JPEG** baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib).
+- **PNG** 1/2/4/8-bit-per-channel (16 bpc not supported).
+- **TGA** (not sure what subset, if a subset).
+- **BMP** non-1bpp, non-RLE.
+- **PSD** (composited view only, no extra channels, 8/16 bit-per-channel).
+- **GIF** (*comp always reports as 4-channel).
+- **HDR** (radiance rgbE format).
+- **PIC** (Softimage PIC).
+- **PNM** (PPM and PGM binary only).
 
 ***
-```
-Copyright © 2017 Andrey A. Ugolnik. All Rights Reserved.
-http://www.ugolnik.info
-andrey@ugolnik.info
-```
+
+> Copyright © 2017-2024 Andrey A. Ugolnik. All Rights Reserved.
+> https://www.ugolnik.info
+> andrey@ugolnik.info
