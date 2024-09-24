@@ -156,38 +156,65 @@ bool KDTreePacker::compare(const cImage* a, const cImage* b) const
 
 #if 0
 
-    if (sizea.height < sizeb.height)
+    return (sizea.width > sizeb.height)
+        || (sizea.width * sizea.height > sizeb.width * sizeb.height);
+
+#elif 0
+
+    return (sizea.height > sizeb.height)
+        || (sizea.width * sizea.height > sizeb.width * sizeb.height);
+
+#elif 0
+
+    auto sa = std::max(sizea.width, sizea.height);
+    auto sb = std::max(sizeb.width, sizeb.height);
+
+    if (sa > sb)
     {
         return true;
     }
-    if (sizeb.height < sizea.height)
+    if (sb < sa)
+    {
+        return false;
+    }
+
+    if (sizea.height > sizeb.height)
+    {
+        return true;
+    }
+    if (sizea.height < sizeb.height)
+    {
+        return false;
+    }
+
+    return sizea.width * sizea.height > sizeb.width * sizeb.height;
+
+#else
+
+    auto sa = std::max(sizea.width, sizea.height);
+    auto sb = std::max(sizeb.width, sizeb.height);
+
+    if (sa > sb)
+    {
+        return true;
+    }
+    if (sb < sa)
     {
         return false;
     }
 
     auto areaa = sizea.width * sizea.height;
     auto areab = sizeb.width * sizeb.height;
-
-    if (areaa < areab)
+    if (areaa > areab)
     {
         return true;
     }
-    if (areab < areaa)
+    if (areaa < areab)
     {
         return false;
     }
 
-    return false;
-
-#elif 0
-
-    return (sizea.width > sizeb.height)
-        || (sizea.width * sizea.height > sizeb.width * sizeb.height);
-
-#else
-
-    return (sizea.height > sizeb.height)
-        || (sizea.width * sizea.height > sizeb.width * sizeb.height);
+    return sizea.height > sizeb.height;
 
 #endif
 }
