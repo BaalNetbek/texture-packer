@@ -159,24 +159,29 @@ bool KDTreePacker::compare(const cImage* a, const cImage* b) const
     return (sizea.width > sizeb.height)
         || (sizea.width * sizea.height > sizeb.width * sizeb.height);
 
-#elif 0
+#else
 
-    return (sizea.height > sizeb.height)
-        || (sizea.width * sizea.height > sizeb.width * sizeb.height);
+    auto maxa = std::max(sizea.width, sizea.height);
+    auto maxb = std::max(sizeb.width, sizeb.height);
 
-#elif 0
-
-    auto sa = std::max(sizea.width, sizea.height);
-    auto sb = std::max(sizeb.width, sizeb.height);
-
-    if (sa > sb)
+    if (maxa > maxb)
     {
         return true;
     }
-    if (sb < sa)
+    if (maxb < maxa)
     {
         return false;
     }
+
+#if 0
+
+    // ./test.sh test-wh -max 3000 -overlay
+    // Out of a total of 33 files, 30 packed better + 0 unchanged, 3 packed worse.
+    // The total pixel difference across all files is -9,438,568.
+    //
+    // ./test.sh test-wz -max 3000 -overlay
+    // Out of a total of 29 files, 26 packed better + 1 unchanged, 2 packed worse.
+    // The total pixel difference across all files is -5,126,036.
 
     if (sizea.height > sizeb.height)
     {
@@ -191,17 +196,13 @@ bool KDTreePacker::compare(const cImage* a, const cImage* b) const
 
 #else
 
-    auto sa = std::max(sizea.width, sizea.height);
-    auto sb = std::max(sizeb.width, sizeb.height);
-
-    if (sa > sb)
-    {
-        return true;
-    }
-    if (sb < sa)
-    {
-        return false;
-    }
+    // ./test.sh test-wh -max 3000 -overlay
+    // Out of a total of 33 files, 32 packed better + 0 unchanged, 1 packed worse.
+    // The total pixel difference across all files is -8,871,488.
+    //
+    // ./test.sh test-wz -max 3000 -overlay
+    // Out of a total of 29 files, 26 packed better + 1 unchanged, 2 packed worse.
+    // The total pixel difference across all files is -5,372,264.
 
     auto areaa = sizea.width * sizea.height;
     auto areab = sizeb.width * sizeb.height;
@@ -215,6 +216,8 @@ bool KDTreePacker::compare(const cImage* a, const cImage* b) const
     }
 
     return sizea.height > sizeb.height;
+
+#endif
 
 #endif
 }
