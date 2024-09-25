@@ -53,7 +53,7 @@ sSize cAtlasSize::nextSize(const sSize& size, uint32_t step) const
     auto nextWidth = size.width + step;
     if (nextWidth < FixSize(size.width, true) && nextWidth < size.height)
     {
-        auto width = FixSize(size.width + step, m_config.pot);
+        auto width = FixSize(nextWidth, m_config.pot);
         return { width, size.height };
     }
 

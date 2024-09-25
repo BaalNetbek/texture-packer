@@ -10,18 +10,14 @@
 #include "Atlas/AtlasSize.h"
 #include "Config.h"
 #include "FileList.h"
-#include "Image.h"
+#include "ImageList.h"
 #include "ImageSaver.h"
 #include "Trim.h"
 #include "Types/Types.h"
 #include "Utils.h"
 
-#include <algorithm>
 #include <cstdlib>
 #include <cstring>
-#include <memory>
-#include <string>
-#include <vector>
 
 void showHelp(const char* name, const sConfig& config);
 void printOversizeError(const sConfig& config, const sSize& atlasSize);
