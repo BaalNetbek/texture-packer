@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "Atlas/AtlasSize.h"
+
 #include <vector>
 
 class AtlasPacker;
@@ -23,13 +25,22 @@ public:
 
     const cImage* loadImage(const std::string& path, uint32_t trimCount);
 
-    void sort(AtlasPacker* packer);
+    bool doPacking(const char* outputAtlasName, const char* outputResName,
+                   const char* resPathPrefix, sSize& atlasSize);
 
     using List = std::vector<cImage*>;
 
-    const List& getList() const;
+    const List& getList() const
+    {
+        return m_images;
+    }
 
 private:
+    bool prepareSize(AtlasPacker* packer, const sSize& atlasSize);
+
+private:
+    const sConfig& m_config;
+    cAtlasSize m_size;
     cTrim* m_trim;
 
 private:

@@ -6,22 +6,16 @@
 *
 \**********************************************/
 
-#include "Atlas/AtlasPacker.h"
-#include "Atlas/AtlasSize.h"
 #include "Config.h"
 #include "FileList.h"
 #include "ImageList.h"
-#include "ImageSaver.h"
-#include "Trim.h"
-#include "Types/Types.h"
 #include "Utils.h"
 
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 void showHelp(const char* name, const sConfig& config);
-void printOversizeError(const sConfig& config, const sSize& atlasSize);
-bool prepareSize(AtlasPacker* packer, const cImageList& imageList, const sSize& atlasSize);
 
 int main(int argc, char* argv[])
 {
@@ -163,109 +157,36 @@ int main(int argc, char* argv[])
     // load images
     auto& files = fileList.getList();
     cImageList imageList(config, files.size());
-    cAtlasSize sizeCalculator(config);
 
     for (const auto& f : files)
     {
         auto image = imageList.loadImage(f.path, f.trimCount);
-        if (image != nullptr)
-        {
-            auto& bmp = image->getBitmap();
-            auto& size = bmp.getSize();
-            sizeCalculator.addRect(size);
-        }
-        else
+        if (image == nullptr)
         {
             ::printf("(WW) File '%s' not loaded.\n", f.path.c_str());
         }
     }
 
     auto& images = imageList.getList();
-    auto ms = (getCurrentTime() - startTime) * 0.001f;
+
     ::printf("Loaded %u (%u) images in %g ms.\n",
              static_cast<uint32_t>(images.size()),
-             static_cast<uint32_t>(files.size()), ms);
+             static_cast<uint32_t>(files.size()),
+             (getCurrentTime() - startTime) * 0.001f);
 
-    if (images.size() > 0)
+    // packing
+    sSize atlasSize;
+    if (imageList.doPacking(outputAtlasName, outputResName, outputResName, atlasSize) == false)
     {
-        auto packer = AtlasPacker::create(images.size(), config);
-        imageList.sort(packer.get());
-
-        auto atlasSize = sizeCalculator.calcSize();
-        if (sizeCalculator.isGood(atlasSize) == false)
-        {
-            printOversizeError(config, atlasSize);
-            return -1;
-        }
-
-        ::printf("Packing:\n");
-        ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
+        ::printf("\n");
+        ::printf("Desired texture size %u x %u, but maximum %u x %u.\n",
+                 atlasSize.width,
+                 atlasSize.height,
+                 config.maxTextureSize,
+                 config.maxTextureSize);
         ::fflush(nullptr);
 
-        startTime = getCurrentTime();
-
-        bool done = false;
-        do
-        {
-            if (prepareSize(packer.get(), imageList, atlasSize) == false)
-            {
-                atlasSize = sizeCalculator.nextSize(atlasSize, 8u);
-                if (sizeCalculator.isGood(atlasSize) == false)
-                {
-                    printOversizeError(config, atlasSize);
-                    return -1;
-                }
-
-                ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
-                ::fflush(nullptr);
-            }
-            else
-            {
-                packer->buildAtlas();
-                auto& atlas = packer->getBitmap();
-
-                cImageSaver saver(atlas, outputAtlasName);
-
-                // write texture
-                if (saver.save() == true)
-                {
-                    outputAtlasName = saver.getAtlasName();
-
-                    // write resource file
-                    if (outputResName != nullptr)
-                    {
-                        std::string atlasName = resPathPrefix != nullptr
-                            ? resPathPrefix
-                            : "";
-                        atlasName += outputAtlasName;
-
-                        packer->generateResFile(outputResName, atlasName.c_str());
-                    }
-
-                    auto spritesArea = sizeCalculator.getArea();
-                    auto atlasArea = atlasSize.width * atlasSize.height;
-                    auto percent = static_cast<uint32_t>(100.0f * spritesArea / atlasArea);
-
-                    ::printf("Atlas '%s' (%u x %u, fill: %u%%) has been created",
-                             outputAtlasName,
-                             atlasSize.width,
-                             atlasSize.height,
-                             percent);
-                }
-                else
-                {
-                    ::printf("Error writting atlas '%s' (%u x %u)", outputAtlasName,
-                             atlasSize.width,
-                             atlasSize.height);
-                }
-
-                auto ms = (getCurrentTime() - startTime) * 0.001f;
-                ::printf(" in %g ms.\n", ms);
-                ::fflush(nullptr);
-
-                done = true;
-            }
-        } while (done == false);
+        return -1;
     }
 
     return 0;
@@ -291,29 +212,4 @@ void showHelp(const char* name, const sConfig& config)
     ::printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
     ::printf("  -dropext           drop file extension from sprite id (default %s)\n", isEnabled(config.dropExt));
     ::printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
-}
-
-void printOversizeError(const sConfig& config, const sSize& atlasSize)
-{
-    ::printf("\n");
-    ::printf("Desired texture size %u x %u, but maximum %u x %u.\n",
-             atlasSize.width,
-             atlasSize.height,
-             config.maxTextureSize,
-             config.maxTextureSize);
-    ::fflush(nullptr);
-}
-
-bool prepareSize(AtlasPacker* packer, const cImageList& imageList, const sSize& atlasSize)
-{
-    packer->setSize(atlasSize);
-    for (auto img : imageList.getList())
-    {
-        if (packer->add(img) == false)
-        {
-            return false;
-        }
-    }
-
-    return true;
 }

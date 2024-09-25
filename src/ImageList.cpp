@@ -10,10 +10,14 @@
 #include "Atlas/AtlasPacker.h"
 #include "Config.h"
 #include "Image.h"
+#include "ImageSaver.h"
 #include "Trim.h"
+#include "Utils.h"
 
 cImageList::cImageList(const sConfig& config, uint32_t reserve)
-    : m_trim(config.trim
+    : m_config(config)
+    , m_size(config)
+    , m_trim(config.trim
                  ? new cTrim()
                  : nullptr)
 {
@@ -38,6 +42,10 @@ const cImage* cImageList::loadImage(const std::string& path, uint32_t trimCount)
 
         if (image->load(path.c_str(), trimCount, m_trim) == true)
         {
+            auto& bmp = image->getBitmap();
+            auto& size = bmp.getSize();
+            m_size.addRect(size);
+
             m_images.push_back(image.release());
 
             return m_images.back();
@@ -47,14 +55,106 @@ const cImage* cImageList::loadImage(const std::string& path, uint32_t trimCount)
     return nullptr;
 }
 
-void cImageList::sort(AtlasPacker* packer)
+bool cImageList::doPacking(const char* outputAtlasName, const char* outputResName,
+                           const char* resPathPrefix, sSize& atlasSize)
 {
+    if (m_images.size() == 0)
+    {
+        return true;
+    }
+
+    atlasSize = m_size.calcSize();
+    if (m_size.isGood(atlasSize) == false)
+    {
+        return false;
+    }
+
+    auto startTime = getCurrentTime();
+
+    auto packer = AtlasPacker::create(m_images.size(), m_config);
+
     std::stable_sort(m_images.begin(), m_images.end(), [&packer](const cImage* a, const cImage* b) -> bool {
         return packer->compare(a, b);
     });
+
+    ::printf("Packing:\n");
+    ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
+    ::fflush(nullptr);
+
+    bool done = false;
+    do
+    {
+        if (prepareSize(packer.get(), atlasSize) == false)
+        {
+            atlasSize = m_size.nextSize(atlasSize, 8u);
+            if (m_size.isGood(atlasSize) == false)
+            {
+                return false;
+            }
+
+            ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
+            ::fflush(nullptr);
+        }
+        else
+        {
+            packer->buildAtlas();
+            auto& atlas = packer->getBitmap();
+
+            cImageSaver saver(atlas, outputAtlasName);
+
+            // write texture
+            if (saver.save() == true)
+            {
+                outputAtlasName = saver.getAtlasName();
+
+                // write resource file
+                if (outputResName != nullptr)
+                {
+                    std::string atlasName = resPathPrefix != nullptr
+                        ? resPathPrefix
+                        : "";
+                    atlasName += outputAtlasName;
+
+                    packer->generateResFile(outputResName, atlasName.c_str());
+                }
+
+                auto spritesArea = m_size.getArea();
+                auto atlasArea = atlasSize.width * atlasSize.height;
+                auto percent = static_cast<uint32_t>(100.0f * spritesArea / atlasArea);
+
+                ::printf("Atlas '%s' (%u x %u, fill: %u%%) has been created",
+                         outputAtlasName,
+                         atlasSize.width,
+                         atlasSize.height,
+                         percent);
+            }
+            else
+            {
+                ::printf("Error writting atlas '%s' (%u x %u)", outputAtlasName,
+                         atlasSize.width,
+                         atlasSize.height);
+            }
+
+            done = true;
+        }
+    } while (done == false);
+
+    ::printf(" in %g ms.\n", (getCurrentTime() - startTime) * 0.001f);
+    ::fflush(nullptr);
+
+    return true;
 }
 
-const cImageList::List& cImageList::getList() const
+bool cImageList::prepareSize(AtlasPacker* packer, const sSize& atlasSize)
 {
-    return m_images;
+    packer->setSize(atlasSize);
+    for (auto img : m_images)
+    {
+        if (packer->add(img) == false)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
