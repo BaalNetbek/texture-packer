@@ -7,6 +7,7 @@
 \**********************************************/
 
 #include "Image.h"
+#include "Log.h"
 #include "Trim.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -85,7 +86,7 @@ bool cImage::load(const char* path, uint32_t trimPath, cTrim* trim)
     m_spriteId = TrimPath(path, trimPath);
     if (m_spriteId.length() == 0)
     {
-        ::printf("(EE) Trim value too big for path '%s'\n", path);
+        cLog::Error("Trim value too big for path '{}'.", path);
         return false;
     }
 

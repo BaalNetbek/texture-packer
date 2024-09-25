@@ -9,8 +9,7 @@
 #include "Trim.h"
 #include "Atlas/AtlasSize.h"
 #include "Config.h"
-
-#include <cstdio>
+#include "Log.h"
 
 bool cTrim::doTrim(const cBitmap& input, cBitmap& output, sOffset& offset) const
 {
@@ -20,20 +19,20 @@ bool cTrim::doTrim(const cBitmap& input, cBitmap& output, sOffset& offset) const
     auto bottom = findBottom(input);
 
     auto& size = input.getSize();
-    // printf("  source size: %u x %u\n", size.width, size.height);
+    // cLog::Debug("  source size: {} x {}", size.width, size.height);
 
     if (left == 0 && right == size.width - 1 && top == 0 && bottom == size.height - 1)
     {
-        // printf("  original size\n");
+        // cLog::Debug("  original size");
         return false;
     }
     else if (left > right || top > bottom)
     {
-        // printf("  empty sprite\n");
+        // cLog::Debug("  empty sprite");
         return true;
     }
 
-    // printf("  new rect: %u <-> %u , %u <-> %u\n", left, right, top, bottom);
+    // cLog::Debug("  new rect: {} <-> {} , {} <-> {}", left, right, top, bottom);
     offset = { left, top };
 
     auto src = input.getData() + top * size.width;
@@ -58,15 +57,14 @@ bool cTrim::doTrim(const cBitmap& input, cBitmap& output, sOffset& offset) const
 
 bool cTrim::trim(const char* /*path*/, const cBitmap& input)
 {
-    // printf("Trim begin: '%s'\n", path);
+    // cLog::Debug("Trim begin: '{}'", path);
 
     m_bitmap.clear();
     m_offset = { 0u, 0u };
 
     auto result = doTrim(input, m_bitmap, m_offset);
 
-    // printf("  trim end.\n");
-    // fflush(nullptr);
+    // cLog::Debug("  trim end.");
 
     return result;
 }
@@ -170,7 +168,7 @@ bool cTrimRigthBottom::trim(const char* /*path*/, const cBitmap& input)
         return false;
     }
 
-    // printf("Trim %s %u x %u -> %u x %u \n", path, size.width, size.height, width, height);
+    // cLog::Debug("Trim {} {} x {} -> {} x {}", path, size.width, size.height, width, height);
 
     auto src = input.getData();
 

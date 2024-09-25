@@ -12,6 +12,7 @@
 #include "File.h"
 #include "Image.h"
 #include "ImageSaver.h"
+#include "Log.h"
 #include "Trim.h"
 #include "Utils.h"
 
@@ -81,9 +82,8 @@ bool cImageList::doPacking(const char* desiredAtlasName, const char* outputResNa
         return packer->compare(a, b);
     });
 
-    ::printf("Packing:\n");
-    ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
-    ::fflush(nullptr);
+    cLog::Info("Packing:");
+    cLog::Info(" - trying {} x {}.", atlasSize.width, atlasSize.height);
 
     bool done = false;
     do
@@ -96,8 +96,7 @@ bool cImageList::doPacking(const char* desiredAtlasName, const char* outputResNa
                 return false;
             }
 
-            ::printf(" - trying %u x %u.\n", atlasSize.width, atlasSize.height);
-            ::fflush(nullptr);
+            cLog::Info(" - trying {} x {}.", atlasSize.width, atlasSize.height);
         }
         else
         {
@@ -134,25 +133,22 @@ bool cImageList::doPacking(const char* desiredAtlasName, const char* outputResNa
                 auto atlasArea = atlasSize.width * atlasSize.height;
                 auto percent = static_cast<uint32_t>(100.0f * spritesArea / atlasArea);
 
-                ::printf("Atlas '%s' (%u x %u, fill: %u%%) has been created",
-                         outputAtlasName.c_str(),
-                         atlasSize.width,
-                         atlasSize.height,
-                         percent);
+                cLog::Info("Atlas '{}' ({} x {}, fill: {}%) was created in {:.2f} ms.",
+                           outputAtlasName.c_str(),
+                           atlasSize.width, atlasSize.height,
+                           percent,
+                           (getCurrentTime() - startTime) * 0.001f);
             }
             else
             {
-                ::printf("Error writting atlas '%s' (%u x %u)", desiredAtlasName,
-                         atlasSize.width,
-                         atlasSize.height);
+                cLog::Error("Error writing atlas '{}' ({} x {})",
+                            desiredAtlasName,
+                            atlasSize.width, atlasSize.height);
             }
 
             done = true;
         }
     } while (done == false);
-
-    ::printf(" in %g ms.\n", (getCurrentTime() - startTime) * 0.001f);
-    ::fflush(nullptr);
 
     return true;
 }

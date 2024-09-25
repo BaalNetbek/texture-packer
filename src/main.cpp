@@ -9,6 +9,7 @@
 #include "Config.h"
 #include "FileList.h"
 #include "ImageList.h"
+#include "Log.h"
 #include "Utils.h"
 
 #include <cstdlib>
@@ -21,8 +22,9 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    ::printf("Texture Packer v1.3.2.\n");
-    ::printf("Copyright (c) 2017-2024 Andrey A. Ugolnik.\n\n");
+    cLog::Info("Texture Packer v1.3.2.");
+    cLog::Info("Copyright (c) 2017-2024 Andrey A. Ugolnik.");
+    cLog::Info("");
     if (argc < 3)
     {
         showHelp(argv[0], config);
@@ -131,25 +133,25 @@ int main(int argc, char* argv[])
 
     if (outputAtlasName == nullptr)
     {
-        ::printf("No output name defined.\n");
+        cLog::Info("No output name defined.");
         return -1;
     }
 
-    ::printf("Border %u px.\n", config.border);
-    ::printf("Padding %u px.\n", config.padding);
-    ::printf("Overlay: %s.\n", isEnabled(config.overlay));
-    ::printf("Allow dupes: %s.\n", isEnabled(config.alowDupes));
-    ::printf("Multi-atlas: %s.\n", isEnabled(config.multi));
-    ::printf("Trim sprites: %s.\n", isEnabled(config.trim));
-    ::printf("Power of Two: %s.\n", isEnabled(config.pot));
-    ::printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
-    ::printf("Drop extension: %s.\n", isEnabled(config.dropExt));
-    ::printf("Max atlas size %u px.\n", config.maxTextureSize);
+    cLog::Info("Border {} px.", config.border);
+    cLog::Info("Padding {} px.", config.padding);
+    cLog::Info("Overlay: {}.", isEnabled(config.overlay));
+    cLog::Info("Allow dupes: {}.", isEnabled(config.alowDupes));
+    cLog::Info("Multi-atlas: {}.", isEnabled(config.multi));
+    cLog::Info("Trim sprites: {}.", isEnabled(config.trim));
+    cLog::Info("Power of Two: {}.", isEnabled(config.pot));
+    cLog::Info("Packing method: {}.", config.slowMethod ? "Slow" : "KD-Tree");
+    cLog::Info("Drop extension: {}.", isEnabled(config.dropExt));
+    cLog::Info("Max atlas size {} px.", config.maxTextureSize);
     if (resPathPrefix != nullptr)
     {
-        ::printf("Resource path prefix: %s.\n", resPathPrefix);
+        cLog::Info("Resource path prefix: {}.", resPathPrefix);
     }
-    ::printf("\n");
+    cLog::Info("");
 
     auto startTime = getCurrentTime();
 
@@ -168,28 +170,25 @@ int main(int argc, char* argv[])
         auto image = imageList.loadImage(f.path, f.trimCount);
         if (image == nullptr)
         {
-            ::printf("(WW) File '%s' not loaded.\n", f.path.c_str());
+            cLog::Warning("File '{}' not loaded.", f.path);
         }
     }
 
     auto& images = imageList.getList();
 
-    ::printf("Loaded %u (%u) images in %g ms.\n",
-             static_cast<uint32_t>(images.size()),
-             static_cast<uint32_t>(files.size()),
-             (getCurrentTime() - startTime) * 0.001f);
+    cLog::Info("Loaded {} ({}) images in {:.2f} ms.",
+               static_cast<uint32_t>(images.size()),
+               static_cast<uint32_t>(files.size()),
+               (getCurrentTime() - startTime) * 0.001f);
 
     // packing
     sSize atlasSize;
     if (imageList.doPacking(outputAtlasName, outputResName, resPathPrefix, atlasSize) == false)
     {
-        ::printf("\n");
-        ::printf("Desired texture size %u x %u, but maximum %u x %u.\n",
-                 atlasSize.width,
-                 atlasSize.height,
-                 config.maxTextureSize,
-                 config.maxTextureSize);
-        ::fflush(nullptr);
+        cLog::Info("");
+        cLog::Info("Desired texture size {} x {}, but maximum {} x {}.",
+                   atlasSize.width, atlasSize.height,
+                   config.maxTextureSize, config.maxTextureSize);
 
         return -1;
     }
@@ -199,23 +198,24 @@ int main(int argc, char* argv[])
 
 void showHelp(const char* name, const sConfig& config)
 {
-    ::printf("Usage:\n");
+    cLog::Info("Usage:");
     auto p = ::strrchr(name, '/');
-    ::printf("  %s INPUT_IMAGE [INPUT_IMAGE] -o ATLAS\n\n", p ? p + 1 : name);
-    ::printf("  INPUT_IMAGE        input image name or directory separated by space\n");
-    ::printf("  -o ATLAS           output atlas name (default PNG)\n");
-    ::printf("  -res DESC_TEXTURE  output atlas description as XML\n");
-    ::printf("  -prefix STRING     add prefix to texture path\n");
-    ::printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
-    ::printf("  -nr                don't recurse in next directory\n");
-    ::printf("  -tl count          trim left sprite's id by count (default 0)\n");
-    ::printf("  -multi             enable multi-atlas (default %s)\n", isEnabled(config.multi));
-    ::printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
-    ::printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));
-    ::printf("  -dupes             allow dupes (default %s)\n", isEnabled(config.alowDupes));
-    ::printf("  -slow              use slow method instead kd-tree (default %s)\n", isEnabled(config.slowMethod));
-    ::printf("  -b size            add border around sprites (default %u px)\n", config.border);
-    ::printf("  -p size            add padding between sprites (default %u px)\n", config.padding);
-    ::printf("  -dropext           drop file extension from sprite id (default %s)\n", isEnabled(config.dropExt));
-    ::printf("  -max size          max atlas size (default %u px)\n", config.maxTextureSize);
+    cLog::Info("  {} INPUT_IMAGE [INPUT_IMAGE] -o ATLAS", p ? p + 1 : name);
+    cLog::Info("");
+    cLog::Info("  INPUT_IMAGE        input image name or directory separated by space");
+    cLog::Info("  -o ATLAS           output atlas name (default PNG)");
+    cLog::Info("  -res DESC_TEXTURE  output atlas description as XML");
+    cLog::Info("  -prefix STRING     add prefix to texture path");
+    cLog::Info("  -pot               make power of two atlas (default {})", isEnabled(config.pot));
+    cLog::Info("  -nr                don't recurse in next directory");
+    cLog::Info("  -tl count          trim left sprite's id by count (default 0)");
+    cLog::Info("  -multi             enable multi-atlas (default {})", isEnabled(config.multi));
+    cLog::Info("  -trim              trim sprites (default {})", isEnabled(config.trim));
+    cLog::Info("  -overlay           overlay sprites (default {})", isEnabled(config.overlay));
+    cLog::Info("  -dupes             allow dupes (default {})", isEnabled(config.alowDupes));
+    cLog::Info("  -slow              use slow method instead kd-tree (default {})", isEnabled(config.slowMethod));
+    cLog::Info("  -b size            add border around sprites (default {} px)", config.border);
+    cLog::Info("  -p size            add padding between sprites (default {} px)", config.padding);
+    cLog::Info("  -dropext           drop file extension from sprite id (default {})", isEnabled(config.dropExt));
+    cLog::Info("  -max size          max atlas size (default {} px)", config.maxTextureSize);
 }
