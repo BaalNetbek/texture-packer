@@ -9,6 +9,7 @@
 #include "Atlas/AtlasPacker.h"
 #include "Atlas/AtlasSize.h"
 #include "Config.h"
+#include "FileList.h"
 #include "Image.h"
 #include "ImageSaver.h"
 #include "Trim.h"
@@ -18,31 +19,21 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
-#include <dirent.h>
 #include <memory>
 #include <string>
 #include <vector>
 
 using ImagesList = std::vector<cImage*>;
 
-struct FileInfo
-{
-    uint32_t trimCount;
-    std::string path;
-};
-
-using FilesList = std::vector<FileInfo>;
-
 void showHelp(const char* name, const sConfig& config);
 void printOversizeError(const sConfig& config, const sSize& atlasSize);
-void addPath(uint32_t trimCount, const std::string& path, bool recurse, FilesList& filesList);
 bool prepareSize(AtlasPacker* packer, const ImagesList& imagesList, const sSize& atlasSize);
 
 int main(int argc, char* argv[])
 {
     sConfig config;
 
-    ::printf("Texture Packer v1.3.1.\n");
+    ::printf("Texture Packer v1.3.2.\n");
     ::printf("Copyright (c) 2017-2024 Andrey A. Ugolnik.\n\n");
     if (argc < 3)
     {
@@ -53,10 +44,11 @@ int main(int argc, char* argv[])
     const char* outputAtlasName = nullptr;
     const char* outputResName = nullptr;
     const char* resPathPrefix = nullptr;
-    FilesList filesList;
 
-    uint32_t trimCount = 0;
-    bool recurse = true;
+    cFileList fileList;
+
+    uint32_t trimCount = 0u;
+    auto recurse = true;
 
     for (int i = 1; i < argc; i++)
     {
@@ -141,27 +133,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-            auto dir = ::opendir(arg);
-            if (dir != nullptr)
-            {
-                ::closedir(dir);
-
-                std::string path = arg;
-                if (path[path.length() - 1] == '/')
-                {
-                    path.pop_back();
-                }
-                addPath(trimCount, path, recurse, filesList);
-
-                recurse = true;
-            }
-            else
-            {
-                if (cImage::IsImage(arg))
-                {
-                    filesList.push_back({ trimCount, arg });
-                }
-            }
+            fileList.addPath(trimCount, arg, recurse);
         }
     }
 
@@ -186,47 +158,49 @@ int main(int argc, char* argv[])
     }
     ::printf("\n");
 
-    const auto totalFiles = (uint32_t)filesList.size();
+    auto startTime = getCurrentTime();
 
     // sort and remove dupes
     if (config.alowDupes == false)
     {
-        std::sort(filesList.begin(), filesList.end(), [](const FileInfo& a, const FileInfo& b) {
-            return a.path < b.path;
-        });
-        auto it = std::unique(filesList.begin(), filesList.end(), [](const FileInfo& a, const FileInfo& b) {
-            return a.path == b.path;
-        });
-        filesList.resize(std::distance(filesList.begin(), it));
+        fileList.removeDupes();
     }
 
     // load images
-    auto startTime = getCurrentTime();
     std::unique_ptr<cTrim> trim(config.trim ? new cTrim() : nullptr);
+
+    auto& files = fileList.getList();
+    const auto totalFiles = files.size();
+
     ImagesList imagesList;
-    imagesList.reserve(filesList.size());
+    imagesList.reserve(totalFiles);
 
     cAtlasSize sizeCalculator(config);
 
-    for (const auto& f : filesList)
+    for (const auto& f : files)
     {
-        std::unique_ptr<cImage> image(new cImage());
-        if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
+        if (cImage::IsImage(f.path.c_str()))
         {
-            auto& bmp = image->getBitmap();
-            auto& size = bmp.getSize();
-            sizeCalculator.addRect(size);
+            std::unique_ptr<cImage> image(new cImage());
+            if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
+            {
+                auto& bmp = image->getBitmap();
+                auto& size = bmp.getSize();
+                sizeCalculator.addRect(size);
 
-            imagesList.push_back(image.release());
-        }
-        else
-        {
-            ::printf("(WW) Image '%s' not loaded.\n", f.path.c_str());
+                imagesList.push_back(image.release());
+            }
+            else
+            {
+                ::printf("(WW) Image '%s' not loaded.\n", f.path.c_str());
+            }
         }
     }
 
     auto ms = (getCurrentTime() - startTime) * 0.001f;
-    ::printf("Loaded %u (%u) images in %g ms.\n", (uint32_t)imagesList.size(), totalFiles, ms);
+    ::printf("Loaded %u (%u) images in %g ms.\n",
+             static_cast<uint32_t>(imagesList.size()),
+             static_cast<uint32_t>(totalFiles), ms);
 
     if (imagesList.size() > 0)
     {
@@ -352,45 +326,6 @@ void printOversizeError(const sConfig& config, const sSize& atlasSize)
              config.maxTextureSize,
              config.maxTextureSize);
     ::fflush(nullptr);
-}
-
-int DirectoryFilter(const dirent* p)
-{
-    // skip . and ..
-#define DOT_OR_DOTDOT(base) (base[0] == '.' && (base[1] == '\0' || (base[1] == '.' && base[2] == '\0')))
-    return DOT_OR_DOTDOT(p->d_name) ? 0 : 1;
-}
-
-void addPath(uint32_t trimCount, const std::string& root, bool recurse, FilesList& filesList)
-{
-    dirent** namelist;
-    int n = ::scandir(root.c_str(), &namelist, DirectoryFilter, alphasort);
-    if (n >= 0)
-    {
-        while (n--)
-        {
-            std::string path(root);
-            path += "/";
-            path += namelist[n]->d_name;
-
-            // skip non non readable files/dirs
-            auto dir = opendir(path.c_str());
-            if (dir != nullptr)
-            {
-                ::closedir(dir);
-                if (recurse)
-                {
-                    addPath(trimCount, path, recurse, filesList);
-                }
-            }
-            else if (cImage::IsImage(path.c_str()))
-            {
-                filesList.push_back({ trimCount, path });
-            }
-            ::free(namelist[n]);
-        }
-        ::free(namelist);
-    }
 }
 
 bool prepareSize(AtlasPacker* packer, const ImagesList& imagesList, const sSize& atlasSize)
