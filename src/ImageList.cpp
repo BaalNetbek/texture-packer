@@ -15,6 +15,7 @@
 #include "Trim.h"
 #include "Utils.h"
 
+#include <algorithm>
 #include <sstream>
 
 cImageList::cImageList(const sConfig& config, uint32_t reserve)
