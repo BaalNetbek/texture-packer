@@ -15,12 +15,12 @@ class cBitmap;
 class cImageSaver final
 {
 public:
-    cImageSaver(const cBitmap& bitmap, const char* filename);
+    cImageSaver(const cBitmap& bitmap, const std::string& filename);
     ~cImageSaver();
 
-    const char* getAtlasName() const
+    const std::string& getAtlasName() const
     {
-        return m_filename.c_str();
+        return m_filename;
     }
 
     bool save() const;
@@ -34,11 +34,12 @@ private:
         unknown,
     };
 
-    Type getWriter(const char* filename) const;
+    Type getWriter(const std::string& filename) const;
 
 private:
     const cBitmap& m_bitmap;
     std::string m_filename;
 
+private:
     Type m_type;
 };

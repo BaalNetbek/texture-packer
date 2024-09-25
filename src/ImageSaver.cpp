@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cstring>
 
-cImageSaver::cImageSaver(const cBitmap& bitmap, const char* filename)
+cImageSaver::cImageSaver(const cBitmap& bitmap, const std::string& filename)
     : m_bitmap(bitmap)
     , m_filename(filename)
 {
@@ -31,9 +31,9 @@ cImageSaver::~cImageSaver()
 {
 }
 
-cImageSaver::Type cImageSaver::getWriter(const char* filename) const
+cImageSaver::Type cImageSaver::getWriter(const std::string& filename) const
 {
-    const auto point = ::strrchr(filename, '.');
+    const auto point = ::strrchr(filename.c_str(), '.');
     if (point != nullptr)
     {
         std::string ext = point;
@@ -67,9 +67,9 @@ cImageSaver::Type cImageSaver::getWriter(const char* filename) const
 bool cImageSaver::save() const
 {
     auto& size = m_bitmap.getSize();
-    const int w = size.width;
-    const int h = size.height;
-    const int stride = w * 4;
+    const auto w = static_cast<int>(size.width);
+    const auto h = static_cast<int>(size.height);
+    const auto stride = static_cast<int>(w * 4u);
     const auto data = m_bitmap.getData();
 
     auto filename = m_filename.c_str();

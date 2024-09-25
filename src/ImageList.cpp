@@ -9,10 +9,13 @@
 #include "ImageList.h"
 #include "Atlas/AtlasPacker.h"
 #include "Config.h"
+#include "File.h"
 #include "Image.h"
 #include "ImageSaver.h"
 #include "Trim.h"
 #include "Utils.h"
+
+#include <sstream>
 
 cImageList::cImageList(const sConfig& config, uint32_t reserve)
     : m_config(config)
@@ -55,7 +58,7 @@ const cImage* cImageList::loadImage(const std::string& path, uint32_t trimCount)
     return nullptr;
 }
 
-bool cImageList::doPacking(const char* outputAtlasName, const char* outputResName,
+bool cImageList::doPacking(const char* desiredAtlasName, const char* outputResName,
                            const char* resPathPrefix, sSize& atlasSize)
 {
     if (m_images.size() == 0)
@@ -100,12 +103,12 @@ bool cImageList::doPacking(const char* outputAtlasName, const char* outputResNam
             packer->buildAtlas();
             auto& atlas = packer->getBitmap();
 
-            cImageSaver saver(atlas, outputAtlasName);
+            cImageSaver saver(atlas, desiredAtlasName);
 
             // write texture
             if (saver.save() == true)
             {
-                outputAtlasName = saver.getAtlasName();
+                auto outputAtlasName = saver.getAtlasName();
 
                 // write resource file
                 if (outputResName != nullptr)
@@ -115,7 +118,15 @@ bool cImageList::doPacking(const char* outputAtlasName, const char* outputResNam
                         : "";
                     atlasName += outputAtlasName;
 
-                    packer->generateResFile(outputResName, atlasName.c_str());
+                    cFile file;
+                    if (file.open(outputResName, "w"))
+                    {
+                        writeHeader(file);
+
+                        packer->generateResFile(file, atlasName);
+
+                        writeFooter(file);
+                    }
                 }
 
                 auto spritesArea = m_size.getArea();
@@ -123,14 +134,14 @@ bool cImageList::doPacking(const char* outputAtlasName, const char* outputResNam
                 auto percent = static_cast<uint32_t>(100.0f * spritesArea / atlasArea);
 
                 ::printf("Atlas '%s' (%u x %u, fill: %u%%) has been created",
-                         outputAtlasName,
+                         outputAtlasName.c_str(),
                          atlasSize.width,
                          atlasSize.height,
                          percent);
             }
             else
             {
-                ::printf("Error writting atlas '%s' (%u x %u)", outputAtlasName,
+                ::printf("Error writting atlas '%s' (%u x %u)", desiredAtlasName,
                          atlasSize.width,
                          atlasSize.height);
             }
@@ -157,4 +168,18 @@ bool cImageList::prepareSize(AtlasPacker* packer, const sSize& atlasSize)
     }
 
     return true;
+}
+void cImageList::writeHeader(cFile& file)
+{
+    std::stringstream out;
+    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    out << "<atlas>\n";
+    file.write((void*)out.str().c_str(), out.str().length());
+}
+
+void cImageList::writeFooter(cFile& file)
+{
+    std::stringstream out;
+    out << "</atlas>\n";
+    file.write((void*)out.str().c_str(), out.str().length());
 }

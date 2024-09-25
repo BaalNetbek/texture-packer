@@ -186,67 +186,54 @@ void AtlasPacker::buildAtlas()
     }
 }
 
-bool AtlasPacker::generateResFile(const char* name, const char* atlasName)
+bool AtlasPacker::generateResFile(cFile& file, const std::string& atlasName)
 {
-    cFile file;
-    if (file.open(name, "w"))
+    std::stringstream out;
+
+    const uint32_t rectsCount = getRectsCount();
+    std::vector<uint32_t> indexes(rectsCount);
+    for (uint32_t i = 0; i < rectsCount; i++)
     {
-        std::stringstream out;
-
-        const uint32_t rectsCount = getRectsCount();
-        std::vector<uint32_t> indexes(rectsCount);
-        for (uint32_t i = 0; i < rectsCount; i++)
-        {
-            indexes[i] = i;
-        }
-
-        std::sort(indexes.begin(), indexes.end(), [this](uint32_t a, uint32_t b) {
-            auto& na = getImageByIndex(a)->getName();
-            auto& nb = getImageByIndex(b)->getName();
-            return na < nb;
-        });
-
-        out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-
-        auto& bitmap = m_atlas;
-        auto& size = bitmap.getSize();
-        out << "<atlas width=\"" << size.width << "\" height=\"" << size.height << "\">\n";
-
-        for (uint32_t i = 0; i < rectsCount; i++)
-        {
-            const auto idx = indexes[i];
-
-            auto image = getImageByIndex(idx);
-            auto& spriteId = image->getSpriteId();
-
-            const auto& rc = getRectByIndex(idx);
-            sOffset pos{
-                rc.left + m_config.padding,
-                rc.top + m_config.padding
-            };
-            sSize size{
-                rc.width(),
-                rc.height()
-            };
-
-            auto& originalSize = image->getOriginalSize();
-            auto& offset = image->getOffset();
-            sOffset hotspot{
-                static_cast<uint32_t>(originalSize.width * 0.5f - offset.x),
-                static_cast<uint32_t>(originalSize.height * 0.5f - offset.y)
-            };
-
-            out << "    ";
-            out << "<" << spriteId << " texture=\"" << atlasName << "\" ";
-            out << "rect=\"" << pos.x << " " << pos.y << " " << size.width << " " << size.height << "\" ";
-            out << "hotspot=\"" << hotspot.x << " " << hotspot.y << "\" />\n";
-        }
-        out << "</atlas>\n";
-
-        file.write((void*)out.str().c_str(), out.str().length());
-
-        return true;
+        indexes[i] = i;
     }
 
-    return false;
+    std::sort(indexes.begin(), indexes.end(), [this](uint32_t a, uint32_t b) {
+        auto& na = getImageByIndex(a)->getName();
+        auto& nb = getImageByIndex(b)->getName();
+        return na < nb;
+    });
+
+    for (uint32_t i = 0; i < rectsCount; i++)
+    {
+        const auto idx = indexes[i];
+
+        auto image = getImageByIndex(idx);
+        auto& spriteId = image->getSpriteId();
+
+        const auto& rc = getRectByIndex(idx);
+        sOffset pos{
+            rc.left + m_config.padding,
+            rc.top + m_config.padding
+        };
+        sSize size{
+            rc.width(),
+            rc.height()
+        };
+
+        auto& originalSize = image->getOriginalSize();
+        auto& offset = image->getOffset();
+        sOffset hotspot{
+            static_cast<uint32_t>(originalSize.width * 0.5f - offset.x),
+            static_cast<uint32_t>(originalSize.height * 0.5f - offset.y)
+        };
+
+        out << "    ";
+        out << "<" << spriteId << " texture=\"" << atlasName << "\" ";
+        out << "rect=\"" << pos.x << " " << pos.y << " " << size.width << " " << size.height << "\" ";
+        out << "hotspot=\"" << hotspot.x << " " << hotspot.y << "\" />\n";
+    }
+
+    file.write((void*)out.str().c_str(), out.str().length());
+
+    return true;
 }

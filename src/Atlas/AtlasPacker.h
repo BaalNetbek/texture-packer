@@ -12,6 +12,7 @@
 
 #include <memory>
 
+class cFile;
 class cImage;
 struct sConfig;
 struct sRect;
@@ -48,7 +49,7 @@ public:
 
     void buildAtlas();
 
-    bool generateResFile(const char* name, const char* atlasName);
+    bool generateResFile(cFile& file, const std::string& atlasName);
 
 protected:
     void copyBitmap(const sRect& rc, const cImage* image, bool overlay);

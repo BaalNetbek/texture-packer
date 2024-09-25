@@ -13,6 +13,7 @@
 #include <vector>
 
 class AtlasPacker;
+class cFile;
 class cImage;
 class cTrim;
 struct sConfig;
@@ -25,7 +26,7 @@ public:
 
     const cImage* loadImage(const std::string& path, uint32_t trimCount);
 
-    bool doPacking(const char* outputAtlasName, const char* outputResName,
+    bool doPacking(const char* desiredAtlasName, const char* outputResName,
                    const char* resPathPrefix, sSize& atlasSize);
 
     using List = std::vector<cImage*>;
@@ -37,6 +38,8 @@ public:
 
 private:
     bool prepareSize(AtlasPacker* packer, const sSize& atlasSize);
+    void writeHeader(cFile& file);
+    void writeFooter(cFile& file);
 
 private:
     const sConfig& m_config;

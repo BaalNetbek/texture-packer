@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
 
     // packing
     sSize atlasSize;
-    if (imageList.doPacking(outputAtlasName, outputResName, outputResName, atlasSize) == false)
+    if (imageList.doPacking(outputAtlasName, outputResName, resPathPrefix, atlasSize) == false)
     {
         ::printf("\n");
         ::printf("Desired texture size %u x %u, but maximum %u x %u.\n",
