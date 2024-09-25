@@ -29,19 +29,19 @@ doPacking() {
     echo "--- Start packing"
     echo "---------------------------------------------------------------------"
     echo ""
-    for i in $(find $test_dir -type d -maxdepth 1 -not -path $test_dir); do
+    find $test_dir -type d -maxdepth 1 -not -path $test_dir -print0 | while read -d $'\0' i; do
         echo "---------------------------------------------------------------------"
-        echo "--- Packing: $i"
+        echo "--- Packing: '$i'"
         echo "---------------------------------------------------------------------"
 
         if [ -f ./packimages-old ]; then
-            ./packimages-old $@ $i -o $i-old.png
+            ./packimages-old $@ "$i" -o "$i-old.png"
             testError
             separator
         fi
 
         if [ -f ./packimages ]; then
-            ./packimages $@ $i -o $i.png
+            ./packimages $@ "$i" -o "$i.png"
             testError
             separator
         fi
@@ -66,14 +66,14 @@ doTests() {
     echo "--- Compare results"
     echo "---------------------------------------------------------------------"
     echo ""
-    for i in $(find $test_dir -type d -maxdepth 1 -not -path $test_dir); do
+    find $test_dir -type d -maxdepth 1 -not -path $test_dir -print0 | while read -d $'\0' i; do
         echo "---------------------------------------------------------------------"
 
-        dim_old=$(magick identify -format "%w * %h" $i-old.png)
-        echo " [$dim_old]: $i-old.png"
+        dim_old=$(magick identify -format "%w * %h" "$i-old.png")
+        echo " [$dim_old]: '$i-old.png'"
 
-        dim_new=$(magick identify -format "%w * %h" $i.png)
-        echo " [$dim_new]: $i.png"
+        dim_new=$(magick identify -format "%w * %h" "$i.png")
+        echo " [$dim_new]: '$i.png'"
 
         diff=$(echo "$dim_new - $dim_old" | bc)
         px_diff="${px_diff} + $diff"
