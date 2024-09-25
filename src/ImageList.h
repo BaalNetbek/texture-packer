@@ -10,6 +10,7 @@
 
 #include "Atlas/AtlasSize.h"
 
+#include <string>
 #include <vector>
 
 class AtlasPacker;
