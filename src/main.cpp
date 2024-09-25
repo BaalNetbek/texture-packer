@@ -95,6 +95,10 @@ int main(int argc, char* argv[])
         {
             config.pot = true;
         }
+        else if (::strcmp(arg, "-multi") == 0)
+        {
+            config.multi = true;
+        }
         else if (::strcmp(arg, "-trim") == 0)
         {
             config.trim = true;
@@ -135,6 +139,7 @@ int main(int argc, char* argv[])
     ::printf("Padding %u px.\n", config.padding);
     ::printf("Overlay: %s.\n", isEnabled(config.overlay));
     ::printf("Allow dupes: %s.\n", isEnabled(config.alowDupes));
+    ::printf("Multi-atlas: %s.\n", isEnabled(config.multi));
     ::printf("Trim sprites: %s.\n", isEnabled(config.trim));
     ::printf("Power of Two: %s.\n", isEnabled(config.pot));
     ::printf("Packing method: %s.\n", config.slowMethod ? "Slow" : "KD-Tree");
@@ -204,6 +209,7 @@ void showHelp(const char* name, const sConfig& config)
     ::printf("  -pot               make power of two atlas (default %s)\n", isEnabled(config.pot));
     ::printf("  -nr                don't recurse in next directory\n");
     ::printf("  -tl count          trim left sprite's id by count (default 0)\n");
+    ::printf("  -multi             enable multi-atlas (default %s)\n", isEnabled(config.multi));
     ::printf("  -trim              trim sprites (default %s)\n", isEnabled(config.trim));
     ::printf("  -overlay           overlay sprites (default %s)\n", isEnabled(config.overlay));
     ::printf("  -dupes             allow dupes (default %s)\n", isEnabled(config.alowDupes));

@@ -16,6 +16,7 @@ struct sConfig
     uint32_t padding = 1;
     bool pot = false;
     bool trim = false;
+    bool multi = false;
     bool overlay = false;
     bool alowDupes = false;
     bool slowMethod = false;
