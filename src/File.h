@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdio>
 
 class cFile final
 {
@@ -19,15 +20,23 @@ public:
     bool open(const char* path, const char* mode = "rb");
     void close();
 
-    long getOffset() const;
-    void* getHandle() const { return m_file; }
+    uint32_t getOffset() const;
 
-    virtual int seek(long offset, int whence) const;
-    virtual uint32_t read(void* ptr, uint32_t size) const;
-    virtual uint32_t write(void* ptr, uint32_t size) const;
-    virtual long getSize() const { return m_size; }
+    uint32_t seek(uint32_t offset, int whence) const;
+    uint32_t read(void* ptr, uint32_t size) const;
+    uint32_t write(void* ptr, uint32_t size) const;
+
+    long getSize() const
+    {
+        return m_size;
+    }
+
+    void* getHandle() const
+    {
+        return m_file;
+    }
 
 protected:
-    void* m_file;
-    long m_size;
+    FILE* m_file = nullptr;
+    uint32_t m_size = 0u;
 };

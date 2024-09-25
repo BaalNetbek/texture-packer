@@ -7,12 +7,9 @@
 \**********************************************/
 
 #include "File.h"
-
-#include <cstdio>
+#include "Log.h"
 
 cFile::cFile()
-    : m_file(nullptr)
-    , m_size(0)
 {
 }
 
@@ -23,19 +20,18 @@ cFile::~cFile()
 
 bool cFile::open(const char* path, const char* mode)
 {
-    FILE* file = fopen(path, mode);
-    if (file != nullptr)
+    m_file = ::fopen(path, mode);
+    if (m_file != nullptr)
     {
-        m_file = file;
-
-        (void)fseek(file, 0, SEEK_END);
-        m_size = ftell(file);
-        (void)fseek(file, 0, SEEK_SET);
+        (void)::fseek(m_file, 0, SEEK_END);
+        m_size = static_cast<uint32_t>(::ftell(m_file));
+        (void)::fseek(m_file, 0, SEEK_SET);
 
         return true;
     }
 
-    printf("Can't open '%s'.\n", path);
+    cLog::Error("Can't open '{}'.", path);
+
     return false;
 }
 
@@ -43,42 +39,42 @@ void cFile::close()
 {
     if (m_file != nullptr)
     {
-        fclose((FILE*)m_file);
+        (void)::fclose(m_file);
         m_file = nullptr;
     }
 }
 
-int cFile::seek(long offset, int whence) const
+uint32_t cFile::seek(uint32_t offset, int whence) const
 {
-    return fseek((FILE*)m_file, offset, whence);
+    return static_cast<uint32_t>(::fseek(m_file, offset, whence));
 }
 
 uint32_t cFile::read(void* ptr, uint32_t size) const
 {
     if (m_file != nullptr)
     {
-        return fread(ptr, 1, size, (FILE*)m_file);
+        return static_cast<uint32_t>(::fread(ptr, 1, size, m_file));
     }
 
-    return 0;
+    return 0u;
 }
 
 uint32_t cFile::write(void* ptr, uint32_t size) const
 {
     if (m_file != nullptr)
     {
-        return fwrite(ptr, 1, size, (FILE*)m_file);
+        return static_cast<uint32_t>(::fwrite(ptr, 1, size, m_file));
     }
 
-    return 0;
+    return 0u;
 }
 
-long cFile::getOffset() const
+uint32_t cFile::getOffset() const
 {
     if (m_file != nullptr)
     {
-        return ftell((FILE*)m_file);
+        return static_cast<uint32_t>(::ftell(m_file));
     }
 
-    return 0;
+    return 0u;
 }
