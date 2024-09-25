@@ -8,6 +8,7 @@
 
 #include "FileList.h"
 
+#include <algorithm>
 #include <dirent.h>
 
 namespace
