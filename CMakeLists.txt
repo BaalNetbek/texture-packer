@@ -29,17 +29,21 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/third-party/fmtlib/include
     )
 
 # link_directories(
 # )
 
-file( GLOB_RECURSE SOURCES "src/*.cpp" )
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-# link_libraries (
-# )
+add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/fmtlib)
 
-add_executable( ${APPLICATION_NAME}
+link_libraries(
+    FmtLib
+    )
+
+add_executable(${APPLICATION_NAME}
     WIN32 # Only if you don't want the DOS prompt to appear in the background in Windows
     # MACOSX_BUNDLE
     ${SOURCES}
