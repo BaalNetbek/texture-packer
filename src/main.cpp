@@ -23,11 +23,9 @@
 #include <string>
 #include <vector>
 
-using ImagesList = std::vector<cImage*>;
-
 void showHelp(const char* name, const sConfig& config);
 void printOversizeError(const sConfig& config, const sSize& atlasSize);
-bool prepareSize(AtlasPacker* packer, const ImagesList& imagesList, const sSize& atlasSize);
+bool prepareSize(AtlasPacker* packer, const cImageList& imageList, const sSize& atlasSize);
 
 int main(int argc, char* argv[])
 {
@@ -167,48 +165,35 @@ int main(int argc, char* argv[])
     }
 
     // load images
-    std::unique_ptr<cTrim> trim(config.trim ? new cTrim() : nullptr);
-
     auto& files = fileList.getList();
-    const auto totalFiles = files.size();
-
-    ImagesList imagesList;
-    imagesList.reserve(totalFiles);
-
+    cImageList imageList(config, files.size());
     cAtlasSize sizeCalculator(config);
 
     for (const auto& f : files)
     {
-        if (cImage::IsImage(f.path.c_str()))
+        auto image = imageList.loadImage(f.path, f.trimCount);
+        if (image != nullptr)
         {
-            std::unique_ptr<cImage> image(new cImage());
-            if (image->load(f.path.c_str(), f.trimCount, trim.get()) == true)
-            {
-                auto& bmp = image->getBitmap();
-                auto& size = bmp.getSize();
-                sizeCalculator.addRect(size);
-
-                imagesList.push_back(image.release());
-            }
-            else
-            {
-                ::printf("(WW) Image '%s' not loaded.\n", f.path.c_str());
-            }
+            auto& bmp = image->getBitmap();
+            auto& size = bmp.getSize();
+            sizeCalculator.addRect(size);
+        }
+        else
+        {
+            ::printf("(WW) File '%s' not loaded.\n", f.path.c_str());
         }
     }
 
+    auto& images = imageList.getList();
     auto ms = (getCurrentTime() - startTime) * 0.001f;
     ::printf("Loaded %u (%u) images in %g ms.\n",
-             static_cast<uint32_t>(imagesList.size()),
-             static_cast<uint32_t>(totalFiles), ms);
+             static_cast<uint32_t>(images.size()),
+             static_cast<uint32_t>(files.size()), ms);
 
-    if (imagesList.size() > 0)
+    if (images.size() > 0)
     {
-        auto packer = AtlasPacker::create(imagesList.size(), config);
-
-        std::stable_sort(imagesList.begin(), imagesList.end(), [&packer](const cImage* a, const cImage* b) -> bool {
-            return packer->compare(a, b);
-        });
+        auto packer = AtlasPacker::create(images.size(), config);
+        imageList.sort(packer.get());
 
         auto atlasSize = sizeCalculator.calcSize();
         if (sizeCalculator.isGood(atlasSize) == false)
@@ -226,7 +211,7 @@ int main(int argc, char* argv[])
         bool done = false;
         do
         {
-            if (prepareSize(packer.get(), imagesList, atlasSize) == false)
+            if (prepareSize(packer.get(), imageList, atlasSize) == false)
             {
                 atlasSize = sizeCalculator.nextSize(atlasSize, 8u);
                 if (sizeCalculator.isGood(atlasSize) == false)
@@ -285,11 +270,6 @@ int main(int argc, char* argv[])
                 done = true;
             }
         } while (done == false);
-
-        for (auto img : imagesList)
-        {
-            delete img;
-        }
     }
 
     return 0;
@@ -328,12 +308,11 @@ void printOversizeError(const sConfig& config, const sSize& atlasSize)
     ::fflush(nullptr);
 }
 
-bool prepareSize(AtlasPacker* packer, const ImagesList& imagesList, const sSize& atlasSize)
+bool prepareSize(AtlasPacker* packer, const cImageList& imageList, const sSize& atlasSize)
 {
     packer->setSize(atlasSize);
-    for (size_t i = 0, size = imagesList.size(); i < size; i++)
+    for (auto img : imageList.getList())
     {
-        const auto& img = imagesList[i];
         if (packer->add(img) == false)
         {
             return false;
