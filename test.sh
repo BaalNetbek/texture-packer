@@ -30,7 +30,7 @@ doPacking() {
     echo "--- Start packing"
     echo "---------------------------------------------------------------------"
     echo ""
-    find $test_dir -type d -maxdepth 1 -not -path $test_dir -print0 | while read -d $'\0' i; do
+    while IFS= read -r -d $'\0' i; do
         echo "---------------------------------------------------------------------"
         echo "--- Packing: '$i'"
         echo "---------------------------------------------------------------------"
@@ -50,7 +50,7 @@ doPacking() {
         echo ""
         echo ""
         echo ""
-    done
+    done < <(find $test_dir -type d -maxdepth 1 -not -path $test_dir -print0)
 }
 
 doTests() {
@@ -58,20 +58,20 @@ doTests() {
     RED='\033[0;31m'
     GREEN='\033[0;32m'
 
-    px_diff="0"
-    files_total=0
-    files_better=0
-    files_worse=0
+    local px_diff="0"
+    local files_total=0
+    local files_better=0
+    local files_worse=0
 
     echo "---------------------------------------------------------------------"
     echo "--- Compare results"
     echo "---------------------------------------------------------------------"
     echo ""
-    find $test_dir -type d -maxdepth 1 -not -path $test_dir -print0 | while read -d $'\0' i; do
+    while IFS= read -r -d $'\0' i; do
         echo "---------------------------------------------------------------------"
 
-        file_old="$i-old.png"
-        file_new="$i.png"
+        local file_old="$i-old.png"
+        local file_new="$i.png"
 
         if [ ! -f "$file_old" -o ! -f "$file_new" ]; then
             exit 2
@@ -87,7 +87,7 @@ doTests() {
         px_diff="${px_diff} + $diff"
 
         # echo "100 * ($dim_new) / ($dim_old) - 100"
-        percent=$(echo "100 * ($dim_new) / ($dim_old) - 100" | bc -l)
+        local percent=$(echo "100 * ($dim_new) / ($dim_old) - 100" | bc -l)
 
         files_total=$((files_total + 1))
 
@@ -102,7 +102,7 @@ doTests() {
         fi
 
         echo ""
-    done
+    done < <(find $test_dir -type d -maxdepth 1 -not -path $test_dir -print0)
 
     echo -e "Out of a total of $files_total files, ${GREEN}$files_better${NC} packed better + $(($files_total - $files_worse - $files_better)) unchanged, ${RED}$files_worse${NC} packed worse."
 
