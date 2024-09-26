@@ -3,7 +3,7 @@
 if [[ $# -eq 0 ]]; then
     echo "Usage:"
     echo "   $0 <directory/to/test/files>"
-    exit -1
+    exit 1
 fi
 
 test_dir=$1
@@ -15,12 +15,13 @@ separator() {
 }
 
 testError() {
-    if [ $? -ne 0 ]; then
+    error_code=$?
+    if [ $error_code -ne 0 ]; then
         echo ""
         echo "---------------------------------------------------------------------"
-        echo "--- Test failed. Stopped!"
+        echo "--- Test failed ($error_code). Stopped!"
         echo "---------------------------------------------------------------------"
-        exit $?
+        exit $error_code
     fi
 }
 
@@ -69,11 +70,18 @@ doTests() {
     find $test_dir -type d -maxdepth 1 -not -path $test_dir -print0 | while read -d $'\0' i; do
         echo "---------------------------------------------------------------------"
 
-        dim_old=$(magick identify -format "%w * %h" "$i-old.png")
-        echo " [$dim_old]: '$i-old.png'"
+        file_old="$i-old.png"
+        file_new="$i.png"
 
-        dim_new=$(magick identify -format "%w * %h" "$i.png")
-        echo " [$dim_new]: '$i.png'"
+        if [ ! -f "$file_old" -o ! -f "$file_new" ]; then
+            exit 2
+        fi
+
+        dim_old=$(magick identify -format "%w * %h" "$file_old")
+        echo " [$dim_old]: '$file_old'"
+
+        dim_new=$(magick identify -format "%w * %h" "$file_new")
+        echo " [$dim_new]: '$file_new'"
 
         diff=$(echo "$dim_new - $dim_old" | bc)
         px_diff="${px_diff} + $diff"
@@ -111,6 +119,9 @@ doTests() {
 }
 
 doPacking ${@:2}
+if [ $? -ne 0 ]; then
+    exit $?
+fi
 
 if [ -f ./texpacker-old -a -f ./texpacker ]; then
     doTests
