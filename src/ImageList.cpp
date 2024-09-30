@@ -16,7 +16,6 @@
 #include "Trim.h"
 #include "Utils.h"
 
-#include <algorithm>
 #include <sstream>
 
 cImageList::cImageList(const sConfig& config, uint32_t reserve)
@@ -76,11 +75,8 @@ bool cImageList::doPacking(const char* desiredAtlasName, const char* outputResNa
 
     auto startTime = getCurrentTime();
 
+    AtlasPacker::sort(m_images, m_config);
     auto packer = AtlasPacker::create(m_images.size(), m_config);
-
-    std::stable_sort(m_images.begin(), m_images.end(), [&packer](const cImage* a, const cImage* b) -> bool {
-        return packer->compare(a, b);
-    });
 
     cLog::Info("Packing:");
     cLog::Info(" - trying {} x {}.", atlasSize.width, atlasSize.height);
@@ -166,6 +162,30 @@ bool cImageList::prepareSize(AtlasPacker* packer, const sSize& atlasSize)
 
     return true;
 }
+
+bool cImageList::prepareAtlas(AtlasPacker* packer, sSize& atlasSize)
+{
+    do
+    {
+        auto result = prepareSize(packer, atlasSize);
+        if (result)
+        {
+            return true;
+        }
+        else
+        {
+            auto desiredSize = m_size.nextSize(atlasSize, 8u);
+            if (m_size.isGood(desiredSize) == false)
+            {
+                return false;
+            }
+
+            atlasSize = desiredSize;
+            cLog::Info(" - trying {} x {}.", atlasSize.width, atlasSize.height);
+        }
+    } while (true);
+}
+
 void cImageList::writeHeader(cFile& file)
 {
     std::stringstream out;

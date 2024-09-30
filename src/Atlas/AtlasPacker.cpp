@@ -18,6 +18,22 @@
 #include <algorithm>
 #include <sstream>
 
+void AtlasPacker::sort(ImageList& imageList, const sConfig& config)
+{
+    if (config.slowMethod)
+    {
+        std::stable_sort(imageList.begin(), imageList.end(), [](const cImage* a, const cImage* b) -> bool {
+            return SimplePacker::Compare(a, b);
+        });
+    }
+    else
+    {
+        std::stable_sort(imageList.begin(), imageList.end(), [](const cImage* a, const cImage* b) -> bool {
+            return KDTreePacker::Compare(a, b);
+        });
+    }
+}
+
 std::unique_ptr<AtlasPacker> AtlasPacker::create(uint32_t count, const sConfig& config)
 {
     if (config.slowMethod)

@@ -146,7 +146,7 @@ KDTreePacker::~KDTreePacker(void)
     delete m_root;
 }
 
-bool KDTreePacker::compare(const cImage* a, const cImage* b) const
+bool KDTreePacker::Compare(const cImage* a, const cImage* b)
 {
     auto& bmpa = a->getBitmap();
     auto& sizea = bmpa.getSize();

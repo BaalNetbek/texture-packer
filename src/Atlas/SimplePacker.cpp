@@ -21,7 +21,7 @@ SimplePacker::~SimplePacker()
 {
 }
 
-bool SimplePacker::compare(const cImage* a, const cImage* b) const
+bool SimplePacker::Compare(const cImage* a, const cImage* b)
 {
     auto& bmpa = a->getBitmap();
     auto& bmpb = b->getBitmap();

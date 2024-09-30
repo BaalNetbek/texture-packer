@@ -19,7 +19,7 @@ public:
     SimplePacker(uint32_t count, const sConfig& config);
     ~SimplePacker();
 
-    bool compare(const cImage* a, const cImage* b) const override;
+    static bool Compare(const cImage* a, const cImage* b);
 
     void setSize(const sSize& size) override;
     bool add(const cImage* image) override;

@@ -9,6 +9,11 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
+
+class cImage;
+
+using ImageList = std::vector<cImage*>;
 
 struct sSize
 {

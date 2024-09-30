@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Types/Bitmap.h"
+#include "Types/Types.h"
 
 #include <memory>
 
@@ -21,13 +22,12 @@ struct sSize;
 class AtlasPacker
 {
 public:
+    static void sort(ImageList& imageList, const sConfig& config);
     static std::unique_ptr<AtlasPacker> create(uint32_t count, const sConfig& config);
 
 public:
     AtlasPacker(const sConfig& config);
     virtual ~AtlasPacker();
-
-    virtual bool compare(const cImage* a, const cImage* b) const = 0;
 
     virtual void setSize(const sSize& size) = 0;
     virtual bool add(const cImage* image) = 0;
