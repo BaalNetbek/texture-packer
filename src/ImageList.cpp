@@ -75,8 +75,7 @@ bool cImageList::doPacking(const char* desiredAtlasName, const char* outputResNa
 
     auto startTime = getCurrentTime();
 
-    AtlasPacker::sort(m_images, m_config);
-    auto packer = AtlasPacker::create(m_images.size(), m_config);
+    auto packer = AtlasPacker::create(m_images, m_config);
 
     cLog::Info("Packing:");
     cLog::Info(" - trying {} x {}.", atlasSize.width, atlasSize.height);

@@ -22,4 +22,6 @@ struct sConfig
     bool slowMethod = false;
     bool dropExt = false;
     uint32_t maxTextureSize = 2048u;
+
+    void dump() const;
 };

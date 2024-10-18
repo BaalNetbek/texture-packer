@@ -22,8 +22,7 @@ struct sSize;
 class AtlasPacker
 {
 public:
-    static void sort(ImageList& imageList, const sConfig& config);
-    static std::unique_ptr<AtlasPacker> create(uint32_t count, const sConfig& config);
+    static std::unique_ptr<AtlasPacker> create(ImageList& imageList, const sConfig& config);
 
 public:
     AtlasPacker(const sConfig& config);

@@ -137,16 +137,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    cLog::Info("Border {} px.", config.border);
-    cLog::Info("Padding {} px.", config.padding);
-    cLog::Info("Overlay: {}.", isEnabled(config.overlay));
-    cLog::Info("Allow dupes: {}.", isEnabled(config.alowDupes));
-    cLog::Info("Multi-atlas: {}.", isEnabled(config.multi));
-    cLog::Info("Trim sprites: {}.", isEnabled(config.trim));
-    cLog::Info("Power of Two: {}.", isEnabled(config.pot));
-    cLog::Info("Packing method: {}.", config.slowMethod ? "Slow" : "KD-Tree");
-    cLog::Info("Drop extension: {}.", isEnabled(config.dropExt));
-    cLog::Info("Max atlas size {} px.", config.maxTextureSize);
+    config.dump();
     if (resPathPrefix != nullptr)
     {
         cLog::Info("Resource path prefix: {}.", resPathPrefix);
