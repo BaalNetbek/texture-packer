@@ -1,14 +1,14 @@
 # Texture Packer
 
-Texture Packer tool allows you to pack individual images into one texture atlas.
+The Texture Packer tool efficiently combines multiple images into a single optimized texture atlas, reducing memory usage and improving rendering performance. It streamlines asset management for game development and UI design by optimizing space usage with intelligent packing algorithms.
 
-## Features
+## Key features:
 
-- Automatically add all images from folder or from command line.
-- Supported input formats: JPEG, PNG, TGA, BMP, PSD, GIF, HDR, PIC, PNM.
-- Write to: PNG (default), TGA, BMP.
-- Ability to set border around image.
-- Ability to trim input images.
+- Automatically add images from a folder or via the command line.
+- Supports input formats: JPEG, PNG, TGA, BMP, PSD, GIF, HDR, PIC, PNM.
+- Exports to PNG (default), TGA, and BMP.
+- Ability to trim input images to remove transparent areas.
+- Option to set a border around images for better separation.
 
 ## Usage
 
@@ -30,7 +30,7 @@ texpacker INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
 
 You can browse the source code repository on GitHub or get a copy using git with the following command:
 ```sh
-git clone https://bitbucket.org/andreyu/texture-packer.git
+git clone https://github.com/andreyugolnik/texture-packer.git
 make release
 ```
 
