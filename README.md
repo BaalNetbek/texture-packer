@@ -2,7 +2,7 @@
 
 The Texture Packer tool efficiently combines multiple images into a single optimized texture atlas, reducing memory usage and improving rendering performance. It streamlines asset management for game development and UI design by optimizing space usage with intelligent packing algorithms.
 
-## Key features:
+## Key features
 
 - Automatically add images from a folder or via the command line.
 - Supports input formats: JPEG, PNG, TGA, BMP, PSD, GIF, HDR, PIC, PNM.
@@ -49,5 +49,7 @@ make release
 ***
 
 > Copyright © 2017-2024 Andrey A. Ugolnik. All Rights Reserved.
+>
 > https://www.ugolnik.info
+>
 > andrey@ugolnik.info
