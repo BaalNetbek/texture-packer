@@ -1,5 +1,10 @@
 # Texture Packer
 
+Branch      | Build status
+:---------- | :------------
+master      | [![Build status: master](https://ci.appveyor.com/api/projects/status/lqfgod1e1pncowc2/branch/master?svg=true)](https://ci.appveyor.com/project/andreyugolnik/texture-packer/branch/master "Branch: master") ![GitHub last commit (master)](https://img.shields.io/github/last-commit/andreyugolnik/texture-packer/master)
+development | [![Build status: development](https://ci.appveyor.com/api/projects/status/lqfgod1e1pncowc2/branch/development?svg=true)](https://ci.appveyor.com/project/andreyugolnik/texture-packer/branch/development "Branch: development") ![GitHub last commit (development)](https://img.shields.io/github/last-commit/andreyugolnik/texture-packer/development)
+
 The Texture Packer tool efficiently combines multiple images into a single optimized texture atlas, reducing memory usage and improving rendering performance. It streamlines asset management for game development and UI design by optimizing space usage with intelligent packing algorithms.
 
 ## Key features
