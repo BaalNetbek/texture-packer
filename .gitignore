@@ -8,9 +8,10 @@
 /.cache/
 /.compile_commands/
 /compile_commands.json
+/packimages*
+/texpacker*
 cppcheck-output
 img/
-packimages
 project.xcworkspace/
 tags
 test*/

@@ -13,7 +13,7 @@ Texture Packer tool allows you to pack individual images into one texture atlas.
 ## Usage
 
 ```sh
-packimages INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
+texpacker INPUT_IMAGE [INPUT_IMAGE] -o ATLAS
   INPUT_IMAGE        input image name or directory separated by space
   -o ATLAS           output atlas name (default PNG)
   -res DESC_TEXTURE  output atlas description as XML

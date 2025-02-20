@@ -6,7 +6,7 @@
 *
 \**********************************************/
 
-#include "Imagesaver.h"
+#include "ImageSaver.h"
 #include "Types/Bitmap.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION

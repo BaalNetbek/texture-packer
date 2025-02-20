@@ -10,7 +10,7 @@
 #include "Atlas/AtlasSize.h"
 #include "Config.h"
 #include "Image.h"
-#include "Imagesaver.h"
+#include "ImageSaver.h"
 #include "Trim.h"
 #include "Types/Types.h"
 #include "Utils.h"

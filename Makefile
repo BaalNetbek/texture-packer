@@ -11,12 +11,12 @@ all:
 release:
 	$(shell if [ ! -d $(BUILD_DIR_RELEASE) ]; then mkdir $(BUILD_DIR_RELEASE); fi )
 	cd $(BUILD_DIR_RELEASE) ; cmake -DCMAKE_BUILD_TYPE=Release .. ; make ; cd ..
-	cp $(BUILD_DIR_RELEASE)/packimages .
+	cp $(BUILD_DIR_RELEASE)/texpacker .
 
 debug:
 	$(shell if [ ! -d $(BUILD_DIR_DEBUG) ]; then mkdir $(BUILD_DIR_DEBUG); fi )
 	cd $(BUILD_DIR_DEBUG) ; cmake -DCMAKE_BUILD_TYPE=Debug .. ; make ; cd ..
-	cp $(BUILD_DIR_DEBUG)/packimages .
+	cp $(BUILD_DIR_DEBUG)/texpacker .
 
 check:
 	cppcheck -j 1 --enable=all -f -I src src/ 2> cppcheck-output
@@ -27,6 +27,6 @@ build_compile_commands:
 	rm -fr compile_commands.json && ln -s $(COMPILE_COMMANDS_DIR)/compile_commands.json compile_commands.json
 
 clean:
-	rm -fr $(BUILD_DIR_RELEASE) $(BUILD_DIR_DEBUG) packimages
+	rm -fr $(BUILD_DIR_RELEASE) $(BUILD_DIR_DEBUG) texpacker
 	rm -fr $(COMPILE_COMMANDS_DIR) .cache/
 

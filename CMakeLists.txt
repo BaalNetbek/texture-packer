@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.22)
 
-set(APPLICATION_NAME "packimages")
+set(APPLICATION_NAME "texpacker")
 
 project(${APPLICATION_NAME})
 

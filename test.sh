@@ -34,14 +34,14 @@ doPacking() {
         echo "--- Packing: '$i'"
         echo "---------------------------------------------------------------------"
 
-        if [ -f ./packimages-old ]; then
-            ./packimages-old $@ "$i" -o "$i-old.png"
+        if [ -f ./texpacker-old ]; then
+            ./texpacker-old $@ "$i" -o "$i-old.png"
             testError
             separator
         fi
 
-        if [ -f ./packimages ]; then
-            ./packimages $@ "$i" -o "$i.png"
+        if [ -f ./texpacker ]; then
+            ./texpacker $@ "$i" -o "$i.png"
             testError
             separator
         fi
@@ -112,6 +112,6 @@ doTests() {
 
 doPacking ${@:2}
 
-if [ -f ./packimages-old -a -f ./packimages ]; then
+if [ -f ./texpacker-old -a -f ./texpacker ]; then
     doTests
 fi
