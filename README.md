@@ -38,6 +38,13 @@ git clone https://github.com/andreyugolnik/texture-packer.git
 make release
 ```
 
+## Install with homebrew
+
+```sh
+brew tap andreyugolnik/homebrew-tap
+brew install andreyugolnik/texture-packer
+```
+
 ## Input files notes
 
 - **JPEG** baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib).
