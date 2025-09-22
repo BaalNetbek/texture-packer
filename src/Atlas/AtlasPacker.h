@@ -10,6 +10,7 @@
 
 #include "Types/Bitmap.h"
 #include "Types/Types.h"
+#include <string>
 
 #include <memory>
 

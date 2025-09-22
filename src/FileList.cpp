@@ -9,18 +9,10 @@
 #include "FileList.h"
 
 #include <algorithm>
-#include <dirent.h>
+#include <filesystem>
 
-namespace
-{
-    int DirectoryFilter(const dirent* p)
-    {
-        // skip . and ..
-#define DOT_OR_DOTDOT(base) (base[0] == '.' && (base[1] == '\0' || (base[1] == '.' && base[2] == '\0')))
-        return DOT_OR_DOTDOT(p->d_name) ? 0 : 1;
-    }
 
-} // namespace
+namespace fs = std::filesystem;
 
 void cFileList::addFile(uint32_t trimCount, const std::string& path)
 {
@@ -29,41 +21,41 @@ void cFileList::addFile(uint32_t trimCount, const std::string& path)
 
 void cFileList::addPath(uint32_t trimCount, const std::string& root, bool recurse)
 {
-    auto dir = ::opendir(root.c_str());
-    if (dir != nullptr)
+    std::error_code errc;
+    fs::path rootPath(root);
+
+    if (!fs::exists(rootPath, errc))
     {
-        dirent** namelist;
-        int n = ::scandir(root.c_str(), &namelist, DirectoryFilter, alphasort);
-        if (n >= 0)
+        addFile(trimCount, root);
+        return;
+    }
+
+    if (!fs::is_directory(rootPath, errc))
+    {
+        addFile(trimCount, root);
+        return;
+    }
+
+    if (recurse)
+    {
+        for (auto const& entry : fs::recursive_directory_iterator(rootPath, fs::directory_options::skip_permission_denied, errc))
         {
-            while (n--)
-            {
-                std::string path(root);
-                if (path[path.length() - 1] != '/')
-                {
-                    path += "/";
-                }
-                path += namelist[n]->d_name;
-
-                if (recurse)
-                {
-                    addPath(trimCount, path, recurse);
-                }
-                else
-                {
-                    addFile(trimCount, path);
-                }
-
-                ::free(namelist[n]);
-            }
-            ::free(namelist);
+            if (errc)
+                continue;
+            if (entry.is_regular_file(errc))
+                addFile(trimCount, entry.path().string());
         }
-
-        ::closedir(dir);
     }
     else
     {
-        addFile(trimCount, root);
+        for (auto const& entry : fs::directory_iterator(rootPath, fs::directory_options::skip_permission_denied, errc))
+        {
+            if (errc)
+                continue;
+            if (entry.is_regular_file(errc))
+                addFile(trimCount, entry.path().string());
+            
+        }
     }
 }
 

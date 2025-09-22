@@ -10,14 +10,14 @@
 
 #include <cstdio>
 #include <cstring>
-#include <sys/time.h>
+#include <chrono>
 
 uint64_t getCurrentTime()
 {
-    timeval t;
-    ::gettimeofday(&t, 0);
-
-    return (uint64_t)(t.tv_sec * 1000000 + t.tv_usec);
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    auto us = duration_cast<microseconds>(now.time_since_epoch()).count();
+    return static_cast<uint64_t>(us);
 }
 
 const char* formatNum(int num, char delimiter)
