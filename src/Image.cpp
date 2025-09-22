@@ -52,7 +52,7 @@ bool cImage::IsImage(const char* path)
     if (path != nullptr)
     {
         std::string res = path;
-        auto pos = res.find_last_of("/");
+        auto pos = res.find_last_of("/\\");
         return pos != std::string::npos
             && pos + 1 != std::string::npos
             && res[pos + 1] != '.';

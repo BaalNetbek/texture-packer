@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 {
     sConfig config;
 
-    cLog::Info("Texture Packer v1.3.2.");
+    cLog::Info("Texture Packer v1.3.2."); 
     cLog::Info("Copyright (c) 2017-2024 Andrey A. Ugolnik.");
     cLog::Info("");
     if (argc < 3)
@@ -39,7 +39,8 @@ int main(int argc, char* argv[])
 
     uint32_t trimCount = 0u;
     auto recurse = true;
-
+    std::vector<std::string> paths{};
+    
     for (int i = 1; i < argc; i++)
     {
         const char* arg = argv[i];
@@ -127,9 +128,14 @@ int main(int argc, char* argv[])
         }
         else
         {
-            fileList.addPath(trimCount, arg, recurse);
+            paths.push_back(arg);
         }
     }
+
+    for (std::string path : paths) {
+        fileList.addPath(trimCount, path, recurse);
+    }
+    
 
     if (outputAtlasName == nullptr)
     {

@@ -44,8 +44,6 @@ link_libraries(
     )
 
 add_executable(${APPLICATION_NAME}
-    WIN32 # Only if you don't want the DOS prompt to appear in the background in Windows
-    # MACOSX_BUNDLE
     ${SOURCES}
     )
 
